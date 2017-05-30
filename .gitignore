@@ -1,2 +1,3 @@
 *.pyc
 sync.sh
+.DS_Store

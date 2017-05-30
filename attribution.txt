@@ -1,0 +1,6 @@
+terminal.png - terminal by Rohith M S from the Noun Project
+run.png - play by James Kocsis from the Noun Project
+stop.png - Stop by Kuber from the Noun Project
+stepin.png - Arrow by logan from the Noun Project
+stepover.png - Arrow by Vladimir Belochkin from the Noun Project
+continue.png - right by Gregor Cresnar from the Noun Project

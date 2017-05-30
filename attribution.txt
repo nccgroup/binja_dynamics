@@ -4,3 +4,6 @@ stop.png - Stop by Kuber from the Noun Project
 stepin.png - Arrow by logan from the Noun Project
 stepover.png - Arrow by Vladimir Belochkin from the Noun Project
 continue.png - right by Gregor Cresnar from the Noun Project
+finish.png - up by Yuki Orikasa from the Noun Project
+sync.png - Sync by Miroku Sama from the Noun Project
+backtrace.png Fast Rewind by Creative Stall from the Noun Project

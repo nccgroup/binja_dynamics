@@ -18,8 +18,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 
 def show_register_window(bv):
     regs = OrderedDict()
-    for reg in bv.arch.full_width_regs:
-        regs[reg] = 0
+    import random
+    for reg in filter(lambda x: 'xmm' not in x and 'st' not in x, bv.arch.full_width_regs):
+        regs[reg] = (random.randint(0,0xFFFF), bv.arch.regs[reg].size * 8)
 
     app = QApplication.instance()
     main_window = [x for x in app.allWidgets() if x.__class__ is QMainWindow][0]

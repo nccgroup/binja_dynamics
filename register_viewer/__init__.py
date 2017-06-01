@@ -97,6 +97,9 @@ class Register():
             return self.ascii
         return None
 
+    def __repr__(self):
+        return self.name + " (" + self.bitwidth + "b): " + self.hex
+
     @property
     def binary(self):
         base = bin(self.value)[2:]

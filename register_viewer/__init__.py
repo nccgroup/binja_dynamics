@@ -1,9 +1,11 @@
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QSize
-from PyQt5.QtGui import QFontDatabase
+from PyQt5.QtGui import QFontDatabase, QColor, QBrush
 from collections import OrderedDict
 
 monospace = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+highlight = QBrush(QColor(255, 153, 51))
+default = QBrush(QColor(255, 255, 255))
 
 def _chunks(l, n):
     for i in xrange(0, len(l), n):
@@ -43,6 +45,8 @@ class Window(QtWidgets.QWidget):
 
         self.setObjectName('Register_Window')
 
+        self.should_clean = False
+
         if registers is not None:
             self.update_registers(registers)
 
@@ -51,15 +55,20 @@ class Window(QtWidgets.QWidget):
         self._table.setRowCount(len(registers))
         for register in registers:
             self.update_single_register(register, registers[register][0], registers[register][1])
-        print(self._table.viewportSizeHint())
         self.resize(QSize(self._layout.sizeHint().width(), self._table.viewportSizeHint().height() + self._picker.sizeHint().height() + 30 ))
 
     def update_single_register(self, name, value, width=32):
+        if(self.should_clean):
+            for reg in self.registers:
+                self.registers[reg].dirty = False
         if name not in self.registers.keys():
             self.registers[name] = Register(name, len(self.registers.keys()), width, value)
+            self._update_table_entry(name)
         else:
-            self.registers[name].value = value
-        self._update_table_entry(name)
+            if self.registers[name].value != value:
+                self.registers[name].setval(value)
+                self._update_table_entry(name)
+        self.should_clean = False
 
     def _update_table_entry(self, name):
         self._table.setItem(self.registers[name].index, 0, _makewidget(self.registers[name].name))
@@ -75,9 +84,30 @@ class Window(QtWidgets.QWidget):
             print(str(mode) + " is not a valid display mode! Valid modes are: " + str(self._display_modes))
             return
         self.display_mode = mode
-        print(self.registers)
         for name in self.registers.keys():
             self._update_table_entry(name)
+        self.should_clean = False
+        print("Disabling Cleaning")
+        self.highlight_dirty()
+
+    def highlight_dirty(self):
+        for reg in self.registers:
+            reg = self.registers[reg]
+            if(reg.dirty):
+                t_item = self._table.item(reg.index, 1)
+                if t_item is not None:
+                    print("Highlighting " + reg.name)
+                    t_item.setForeground(highlight)
+                if(self.should_clean):
+                    print("Cleaning " + reg.name)
+                    reg.dirty = False
+            else:
+                t_item = self._table.item(reg.index, 1)
+                if t_item is not None:
+                    print("Restoring to default color: " + reg.name)
+                    t_item.setForeground(default)
+        print("Will Clean Next Time")
+        self.should_clean = True
 
 class Register():
     def __init__(self, name, index, width, value=0):
@@ -85,6 +115,7 @@ class Register():
         self.bitwidth = width
         self.value = value
         self.index = index
+        self.dirty = False
 
     def __getitem__(self, encoding):
         if encoding == 'hex':
@@ -98,7 +129,7 @@ class Register():
         return None
 
     def __repr__(self):
-        return self.name + " (" + self.bitwidth + "b): " + self.hex
+        return self.name + " (" + str(self.bitwidth) + "b): " + self.hex
 
     @property
     def binary(self):
@@ -112,7 +143,7 @@ class Register():
 
     @property
     def hex(self):
-        base = hex(self.value)
+        base = hex(self.value).replace("L","")
         out = "0x" + "0"*((self.bitwidth / 4) - len(base.split('0x')[1])) + base.split('0x')[1]
         return out
 
@@ -120,3 +151,7 @@ class Register():
     def ascii(self):
         hexstr = self.hex[2:]
         return "".join([('.' if (int(c, 16) < 32 or int(c, 16) >= 127) else chr(int(c, 16))) for c in _chunks(hexstr, 2)])
+
+    def setval(self, newval):
+        self.value = int(newval)
+        self.dirty = True

@@ -84,14 +84,15 @@ def enable_dynamics(view):
     funcs = [f for f in filter(lambda b: b.name == 'main', view.functions)]
     if(len(funcs) != 0):
         set_breakpoint(view, funcs[0].start)
+        view.file.navigate(view.file.view, funcs[0].start)
     else:
         show_message("No main function found")
     main_window.messagebox.hide()
 
 PluginCommand.register("Enable Dynamic Analysis Features", "Enables features for dynamic analysis on this binary view", enable_dynamics)
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal("lldb " + bv.file.filename), "Open a terminal with an LLDB Session")
-add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/run.png", iconsize, run_binary, "Run Binary")
+add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/finish.png", iconsize, partial(update_wrapper, step_out), "Step out of stack frame")
-add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/continue.png", iconsize, continue_exec, "Continue to next breakpoint")
+add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/continue.png", iconsize, partial(update_wrapper, continue_exec), "Continue to next breakpoint")

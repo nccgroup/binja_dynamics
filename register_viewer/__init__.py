@@ -87,7 +87,6 @@ class Window(QtWidgets.QWidget):
         for name in self.registers.keys():
             self._update_table_entry(name)
         self.should_clean = False
-        print("Disabling Cleaning")
         self.highlight_dirty()
 
     def highlight_dirty(self):
@@ -96,17 +95,13 @@ class Window(QtWidgets.QWidget):
             if(reg.dirty):
                 t_item = self._table.item(reg.index, 1)
                 if t_item is not None:
-                    print("Highlighting " + reg.name)
                     t_item.setForeground(highlight)
                 if(self.should_clean):
-                    print("Cleaning " + reg.name)
                     reg.dirty = False
             else:
                 t_item = self._table.item(reg.index, 1)
                 if t_item is not None:
-                    print("Restoring to default color: " + reg.name)
                     t_item.setForeground(default)
-        print("Will Clean Next Time")
         self.should_clean = True
 
 class Register():

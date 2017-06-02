@@ -10,7 +10,6 @@ class MessageBox(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QHBoxLayout())
         self._layout = self.layout()
 
-        print(QtGui.QMovie.supportedFormats())
         self._gif = QtWidgets.QLabel()
         movie = QtGui.QMovie("loading.gif")
         self._gif.setMovie(movie)

@@ -1,4 +1,4 @@
-from binja_toolbar import add_image_button, set_bv
+from binja_toolbar import add_image_button, set_bv, add_picker
 from binja_spawn_terminal import spawn_terminal
 from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint
 from collections import OrderedDict
@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow
 
 main_window = None
 reglist = []
+debugger = "lldb"
 
 def init_gui():
     global main_window
@@ -37,9 +38,13 @@ def show_register_window(bv):
     if(bv.arch.name == 'x86_64'):
         reglist.append('rip')
         regs['rip'] = (0, 64)
+        reglist.append('rflags')
+        regs['rflags'] = (0, 64)
     elif(bv.arch.name == 'x86'):
         reglist.append('eip')
         regs['eip'] = (0, 32)
+        reglist.append('eflags')
+        regs['eflags'] = (0, 32)
     for reg in filter(lambda x: 'mm' not in x and 'st' not in x and 'base' not in x, bv.arch.full_width_regs):
         regs[reg] = (0, bv.arch.regs[reg].size * 8)
         reglist.append(reg)
@@ -59,7 +64,7 @@ def update_registers(registers):
             except KeyError:
                 print("Voltron did not return a register called " + reg)
             except TypeError:
-                log_alert("Couldn't get register state. The process may have exited, or it may be waiting for input from you.")
+                log_alert("Couldn't get register state. The process may not be running, or it may be waiting for input from you.")
                 break
         main_window.regwindow.highlight_dirty()
 
@@ -74,8 +79,8 @@ def enable_dynamics(view):
     set_bv(view)
     show_message("Syncing with Voltron")
     if not sync(view):
-        show_message("Could not Sync with Voltron, spawning LLDB Terminal")
-        spawn_terminal("lldb " + view.file.filename)
+        show_message("Could not Sync with Voltron, spawning debugger terminal")
+        spawn_terminal(debugger + " " + view.file.filename)
         for _ in range(5):
             if(sync(view)):
                 break
@@ -86,11 +91,16 @@ def enable_dynamics(view):
         set_breakpoint(view, funcs[0].start)
         view.file.navigate(view.file.view, funcs[0].start)
     else:
-        show_message("No main function found")
+        log_alert("No main function found, so no breakpoints were set")
     main_window.messagebox.hide()
 
+def picker_callback(x):
+    global debugger
+    debugger = "gdb" if (x == 1) else "lldb"
+
+add_picker(['lldb', 'gdb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Features", "Enables features for dynamic analysis on this binary view", enable_dynamics)
-add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal("lldb " + bv.file.filename), "Open a terminal with an LLDB Session")
+add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal(debugger + " " + bv.file.filename), "Open a terminal with an LLDB Session")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")

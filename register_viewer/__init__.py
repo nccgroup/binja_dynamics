@@ -6,17 +6,26 @@ from collections import OrderedDict
 monospace = QFontDatabase.systemFont(QFontDatabase.FixedFont)
 highlight = QBrush(QColor(255, 153, 51))
 default = QBrush(QColor(255, 255, 255))
+flagbits = OrderedDict([('c', 0), ('p', 2), ('a', 4), ('z', 6), ('s', 7), ('t', 8), ('i', 9), ('d', 10), ('o', 11)])
+flagnames = ["Carry Flag", "Parity Flag", "Adjust Flag", "Zero Flag", "Sign Flag", "Trap Flag", "Interrupt Enable Flag", "Direction Flag", "Overflow Flag"]
 
 def _chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i + n]
 
-def _makewidget(val):
+def _makewidget(val, center=False):
     out = QtWidgets.QTableWidgetItem(str(val))
     out.setFlags(Qt.ItemIsEnabled)
     out.setFont(monospace)
+    if(center):
+        out.setTextAlignment(Qt.AlignCenter)
     return out
 
+def parse_flag_register(flagsval):
+    values = OrderedDict()
+    for flag in flagbits:
+        values[flag] = (flagsval & (1 << flagbits[flag]) > 0)
+    return values
 
 class Window(QtWidgets.QWidget):
     _display_modes = ['binary', 'decimal', 'hex', 'ascii']
@@ -43,6 +52,18 @@ class Window(QtWidgets.QWidget):
         self._table.verticalHeader().setVisible(False)
         self._layout.addWidget(self._table)
 
+        self._flags = QtWidgets.QTableWidget()
+        self._flags.setColumnCount(len(flagbits.keys()))
+        self._flags.setHorizontalHeaderLabels(flagbits.keys())
+        self._flags.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self._flags.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Fixed)
+        self._flags.verticalHeader().setVisible(False)
+        self._flags.setMaximumHeight(55)
+        self._flags.setRowCount(1)
+        for index, value in enumerate(flagnames):
+            self._flags.horizontalHeaderItem(index).setToolTip(value)
+        self._layout.addWidget(self._flags)
+
         self.setObjectName('Register_Window')
 
         self.should_clean = False
@@ -55,7 +76,7 @@ class Window(QtWidgets.QWidget):
         self._table.setRowCount(len(registers))
         for register in registers:
             self.update_single_register(register, registers[register][0], registers[register][1])
-        self.resize(QSize(self._layout.sizeHint().width(), self._table.viewportSizeHint().height() + self._picker.sizeHint().height() + 30 ))
+        self.resize(QSize(self._layout.sizeHint().width(), self._table.viewportSizeHint().height() + self._picker.sizeHint().height() + self._table.sizeHint().height()))
 
     def update_single_register(self, name, value, width=32):
         if(self.should_clean):
@@ -68,11 +89,18 @@ class Window(QtWidgets.QWidget):
             if self.registers[name].value != value:
                 self.registers[name].setval(value)
                 self._update_table_entry(name)
+        if name == 'eflags' or name == 'rflags':
+            self._update_flag_display(value)
         self.should_clean = False
 
     def _update_table_entry(self, name):
         self._table.setItem(self.registers[name].index, 0, _makewidget(self.registers[name].name))
         self._table.setItem(self.registers[name].index, 1, _makewidget(self.registers[name][self.display_mode]))
+
+    def _update_flag_display(self, value):
+        values = parse_flag_register(value)
+        for i in range(len(flagbits.keys())):
+            self._flags.setItem(0, i, _makewidget("1" if (values[values.keys()[i]]) else "0", True))
 
     def change_display_mode(self, mode):
         if type(mode) is int:

@@ -1,13 +1,15 @@
 from binja_toolbar import add_image_button, set_bv, add_picker
 from binja_spawn_terminal import spawn_terminal
-from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint
+from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint, get_memory
 from collections import OrderedDict
 from functools import partial
 from time import sleep
+import psutil
 
 iconsize = (24, 24)
 
-from register_viewer import Window
+from register_viewer import RegisterWindow
+from memory_viewer import MemoryWindow
 from message_box import MessageBox
 from binaryninja import PluginCommand, log_info, log_alert
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -50,9 +52,15 @@ def show_register_window(bv):
         reglist.append(reg)
 
     init_gui()
-    main_window.regwindow = Window()
+    main_window.regwindow = RegisterWindow()
     main_window.regwindow.update_registers(regs)
     main_window.regwindow.show()
+
+def show_memory_window(bv):
+    global main_window
+    init_gui()
+    main_window.hexv = MemoryWindow(OrderedDict([('stack', 0x0)]))
+    main_window.hexv.show()
 
 def update_registers(registers):
     global main_window
@@ -68,7 +76,21 @@ def update_registers(registers):
                 break
         main_window.regwindow.highlight_dirty()
 
+def update_memory(mem):
+    print("Pushing", len(mem), "bytes to stack display")
+    main_window.hexv.update_display('stack', 0x0, mem)
+
 def update_wrapper(wrapped, view):
+    procname = view.file.filename.split("/")[-1]
+    for proc in psutil.process_iter():
+        if proc.name() == procname:
+            maps = proc.memory_maps(grouped=False)
+            for m in maps:
+                if(m.path.strip("[]") == 'stack'):
+                    addr = m.addr.split("-")
+                    low, high = int(addr[0],16), int(addr[1],16)
+                    update_memory(get_memory(view, low, high-low))
+
     wrapped(view)
     update_registers(get_registers(view))
 
@@ -92,6 +114,7 @@ def enable_dynamics(view):
         view.file.navigate(view.file.view, funcs[0].start)
     else:
         log_alert("No main function found, so no breakpoints were set")
+    show_memory_window(view)
     main_window.messagebox.hide()
 
 def picker_callback(x):
@@ -100,7 +123,7 @@ def picker_callback(x):
 
 add_picker(['lldb', 'gdb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Features", "Enables features for dynamic analysis on this binary view", enable_dynamics)
-add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal(debugger + " " + bv.file.filename), "Open a terminal with an LLDB Session")
+add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal(debugger + " " + bv.file.filename), "Open a terminal with the selected debugger session")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")

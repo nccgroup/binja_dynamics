@@ -27,13 +27,13 @@ def parse_flag_register(flagsval):
         values[flag] = (flagsval & (1 << flagbits[flag]) > 0)
     return values
 
-class Window(QtWidgets.QWidget):
+class RegisterWindow(QtWidgets.QWidget):
     _display_modes = ['binary', 'decimal', 'hex', 'ascii']
     registers = OrderedDict()
     display_mode = 'hex'
 
     def __init__(self, registers=None):
-        super(Window, self).__init__()
+        super(RegisterWindow, self).__init__()
 
         self.setLayout(QtWidgets.QVBoxLayout())
         self._layout = self.layout()

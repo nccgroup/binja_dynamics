@@ -40,7 +40,8 @@ class MemoryWindow(QtWidgets.QWidget):
             self.viewstack.addWidget(disp)
 
         self._layout.addWidget(self.viewstack)
-
+        self.setMaximumWidth(self.viewstack.widget(0).maximumWidth() + 20)
+        self.setMinimumWidth(self.viewstack.widget(0).minimumWidth() + 20)
         self.setObjectName('Memory_Window')
 
     def change_display_segment(self, segment):
@@ -66,4 +67,8 @@ class MemoryWindow(QtWidgets.QWidget):
 
     def update_display(self, segment, address, new_memory):
         print("Got", len(new_memory), "bytes to push to", segment, "at", address)
-        self.get_widget(segment).update_addr(address, new_memory)
+        self.get_widget(segment).update_addr(0x0, new_memory)
+        self.get_widget(segment).set_new_offset(address)
+
+    def highlight_bytes_at_address(self, segment, address, length):
+        self.get_widget(segment).highlight_address(address, length)

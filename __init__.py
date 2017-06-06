@@ -11,7 +11,7 @@ iconsize = (24, 24)
 from register_viewer import RegisterWindow
 from memory_viewer import MemoryWindow
 from message_box import MessageBox
-from binaryninja import PluginCommand, log_info, log_alert
+from binaryninja import PluginCommand, log_info, log_alert, log_error
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 main_window = None
@@ -65,7 +65,6 @@ def show_memory_window(bv):
 def update_registers(registers):
     global main_window
     if main_window is not None:
-        print("Updating Registers")
         for reg in reglist:
             try:
                 main_window.regwindow.update_single_register(reg, registers[reg])
@@ -76,12 +75,20 @@ def update_registers(registers):
                 break
         main_window.regwindow.highlight_dirty()
 
-def update_memory(mem):
+def update_memory(mem, esp):
+    if mem is None:
+        log_error("No memory returned!")
+        return
     print("Pushing", len(mem), "bytes to stack display")
-    main_window.hexv.update_display('stack', 0x0, mem)
+    main_window.hexv.update_display('stack', esp, mem)
+    main_window.hexv.highlight_bytes_at_address('stack', esp, 8)
 
+import pprint as pp
 def update_wrapper(wrapped, view):
-    procname = view.file.filename.split("/")[-1]
+    wrapped(view)
+    reg = get_registers(view)
+    update_registers(reg)
+    procname = view.file.filename.split("/")[-1].replace(".bndb","")
     for proc in psutil.process_iter():
         if proc.name() == procname:
             maps = proc.memory_maps(grouped=False)
@@ -89,10 +96,8 @@ def update_wrapper(wrapped, view):
                 if(m.path.strip("[]") == 'stack'):
                     addr = m.addr.split("-")
                     low, high = int(addr[0],16), int(addr[1],16)
-                    update_memory(get_memory(view, low, high-low))
-
-    wrapped(view)
-    update_registers(get_registers(view))
+                    print(hex(low), hex(high), hex(reg['rsp']), hex(reg['rbp']))
+                    update_memory(get_memory(view, reg['rsp'], high-reg['rsp']), reg['rsp'])
 
 def enable_dynamics(view):
     global main_window

@@ -1,6 +1,7 @@
+from __future__ import print_function
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 from hexview import HexDisplay
 from collections import OrderedDict
 
@@ -11,9 +12,12 @@ class MemoryWindow(QtWidgets.QWidget):
 
     def __init__(self, segments=None):
         """
-        Takes either no arguments, or a dict containing segment names and
+        Takes either no arguments, or a dict containing segment names and starting addresses
         """
         super(MemoryWindow, self).__init__()
+
+        self.stack_pointer = None
+        self.base_pointer = None
 
         if segments is not None:
             if type(segments) is not OrderedDict:
@@ -66,9 +70,27 @@ class MemoryWindow(QtWidgets.QWidget):
         return None
 
     def update_display(self, segment, address, new_memory):
-        print("Got", len(new_memory), "bytes to push to", segment, "at", address)
+        print("Got", len(new_memory), "bytes to push to", segment, "at", hex(address))
         self.get_widget(segment).update_addr(0x0, new_memory)
         self.get_widget(segment).set_new_offset(address)
 
-    def highlight_bytes_at_address(self, segment, address, length):
-        self.get_widget(segment).highlight_address(address, length)
+    def highlight_bytes_at_address(self, segment, address, length, color=Qt.red):
+        self.get_widget(segment).highlight_address(address, length, color)
+
+    def highlight_stack_pointer(self, sp, width=8):
+        if self.stack_pointer is not None:
+            self.get_widget('stack').clear_highlight(self.stack_pointer)
+        self.highlight_bytes_at_address('stack', sp, width, QColor(0xA2, 0xD9, 0xAF))
+        self.stack_pointer = sp
+
+    def highlight_base_pointer(self, bp, width=8):
+        # Base Pointer
+        if self.base_pointer is not None:
+            self.get_widget('stack').clear_highlight(self.base_pointer)
+        self.highlight_bytes_at_address('stack', bp, width, Qt.darkYellow)
+        # Return Address
+        if self.base_pointer is not None:
+            self.get_widget('stack').clear_highlight(self.base_pointer+width)
+        if self.base_pointer != self.stack_pointer:
+            self.highlight_bytes_at_address('stack', bp+width, width, QColor(255, 153, 51))
+        self.base_pointer = bp

@@ -1,6 +1,7 @@
+from __future__ import print_function
 from binja_toolbar import add_image_button, set_bv, add_picker
 from binja_spawn_terminal import spawn_terminal
-from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint, get_memory
+from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint, get_memory, get_backtrace
 from collections import OrderedDict
 from functools import partial
 from time import sleep
@@ -13,10 +14,15 @@ from memory_viewer import MemoryWindow
 from message_box import MessageBox
 from binaryninja import PluginCommand, log_info, log_alert, log_error
 from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor
 
 main_window = None
 reglist = []
+segments = ['stack']
 debugger = "lldb"
+reg_width = 64
+reg_prefix = 'r'
 
 def init_gui():
     global main_window
@@ -32,21 +38,15 @@ def show_message(message):
         main_window.messagebox.update(message)
     else:
         main_window.messagebox = MessageBox()
-        main_window.messagebox.show()
+        # main_window.messagebox.show()
 
 def show_register_window(bv):
     global reglist, main_window
     regs = OrderedDict()
-    if(bv.arch.name == 'x86_64'):
-        reglist.append('rip')
-        regs['rip'] = (0, 64)
-        reglist.append('rflags')
-        regs['rflags'] = (0, 64)
-    elif(bv.arch.name == 'x86'):
-        reglist.append('eip')
-        regs['eip'] = (0, 32)
-        reglist.append('eflags')
-        regs['eflags'] = (0, 32)
+    reglist.append(reg_prefix + 'ip')
+    regs[reg_prefix + 'ip'] = (0, reg_width)
+    reglist.append(reg_prefix + 'flags')
+    regs[reg_prefix + 'flags'] = (0, reg_width)
     for reg in filter(lambda x: 'mm' not in x and 'st' not in x and 'base' not in x, bv.arch.full_width_regs):
         regs[reg] = (0, bv.arch.regs[reg].size * 8)
         reglist.append(reg)
@@ -56,10 +56,10 @@ def show_register_window(bv):
     main_window.regwindow.update_registers(regs)
     main_window.regwindow.show()
 
-def show_memory_window(bv):
+def show_memory_window(_bv):
     global main_window
     init_gui()
-    main_window.hexv = MemoryWindow(OrderedDict([('stack', 0x0)]))
+    main_window.hexv = MemoryWindow(OrderedDict([(segname, 0x0) for segname in segments]))
     main_window.hexv.show()
 
 def update_registers(registers):
@@ -75,51 +75,62 @@ def update_registers(registers):
                 break
         main_window.regwindow.highlight_dirty()
 
-def update_memory(mem, esp):
-    if mem is None:
-        log_error("No memory returned!")
-        return
-    print("Pushing", len(mem), "bytes to stack display")
-    main_window.hexv.update_display('stack', esp, mem)
-    main_window.hexv.highlight_bytes_at_address('stack', esp, 8)
-
 import pprint as pp
-def update_wrapper(wrapped, view):
-    wrapped(view)
-    reg = get_registers(view)
+def update_wrapper(wrapped, bv):
+    wrapped(bv)
+    reg = get_registers(bv)
     update_registers(reg)
-    procname = view.file.filename.split("/")[-1].replace(".bndb","")
+    if reg is None:
+        log_error("No registers returned!")
+        return
+    procname = bv.file.filename.split("/")[-1].replace(".bndb","")
     for proc in psutil.process_iter():
         if proc.name() == procname:
             maps = proc.memory_maps(grouped=False)
             for m in maps:
                 if(m.path.strip("[]") == 'stack'):
                     addr = m.addr.split("-")
-                    low, high = int(addr[0],16), int(addr[1],16)
-                    print(hex(low), hex(high), hex(reg['rsp']), hex(reg['rbp']))
-                    update_memory(get_memory(view, reg['rsp'], high-reg['rsp']), reg['rsp'])
+                    high = int(addr[1],16)
+                    sp, bp = reg[reg_prefix + 'sp'], reg[reg_prefix + 'bp']
+                    memtop = sp if (sp % 32 == 0) else (sp + (32 - sp % 32) - 32)
+                    mem = get_memory(bv, memtop, high-memtop)
+                    if mem is None:
+                        log_error("No memory returned!")
+                        return
+                    main_window.hexv.update_display('stack', memtop, mem)
+                    main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
+                    main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
+    log_info(get_backtrace(bv))
 
-def enable_dynamics(view):
-    global main_window
-    show_message("Placing windows")
-    show_register_window(view)
-    set_bv(view)
+def enable_dynamics(bv):
+    global main_window, reg_prefix, reg_width
+    if(bv.arch.name == 'x86_64'):
+        pass
+    elif(bv.arch.name == 'x86'):
+        reg_width = 32
+        reg_prefix = 'e'
+    else:
+        log_error("Architecture not supported!")
+
     show_message("Syncing with Voltron")
-    if not sync(view):
+    if not sync(bv):
         show_message("Could not Sync with Voltron, spawning debugger terminal")
-        spawn_terminal(debugger + " " + view.file.filename)
+        spawn_terminal(debugger + " " + bv.file.filename.replace(".bndb",""))
         for _ in range(5):
-            if(sync(view)):
+            if(sync(bv)):
                 break
             sleep(1)
     show_message("Attempting to set breakpoint at main")
-    funcs = [f for f in filter(lambda b: b.name == 'main', view.functions)]
+    funcs = [f for f in filter(lambda b: b.name == 'main', bv.functions)]
     if(len(funcs) != 0):
-        set_breakpoint(view, funcs[0].start)
-        view.file.navigate(view.file.view, funcs[0].start)
+        set_breakpoint(bv, funcs[0].start)
+        bv.file.navigate(bv.file.view, funcs[0].start)
     else:
         log_alert("No main function found, so no breakpoints were set")
-    show_memory_window(view)
+    show_message("Placing windows")
+    show_register_window(bv)
+    set_bv(bv)
+    show_memory_window(bv)
     main_window.messagebox.hide()
 
 def picker_callback(x):

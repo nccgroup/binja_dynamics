@@ -1,3 +1,4 @@
+from __future__ import print_function
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QFontDatabase, QColor, QBrush
@@ -28,7 +29,7 @@ def parse_flag_register(flagsval):
     return values
 
 class RegisterWindow(QtWidgets.QWidget):
-    _display_modes = ['binary', 'decimal', 'hex', 'ascii']
+    _display_modes = ['binary', 'decimal', 'hex', 'ascii', 'deref']
     registers = OrderedDict()
     display_mode = 'hex'
 
@@ -132,6 +133,13 @@ class RegisterWindow(QtWidgets.QWidget):
                     t_item.setForeground(default)
         self.should_clean = True
 
+    def update_derefs(self, derefs):
+        for reg in derefs.keys():
+            if self.registers[reg].dereference != derefs[reg]:
+                self.registers[reg].dereference = derefs[reg]
+                # if self.display_mode == 'deref':
+                self._update_table_entry(reg)
+
 class Register():
     def __init__(self, name, index, width, value=0):
         self.name = name
@@ -139,6 +147,7 @@ class Register():
         self.value = value
         self.index = index
         self.dirty = False
+        self.dereference = []
 
     def __getitem__(self, encoding):
         if encoding == 'hex':
@@ -149,6 +158,8 @@ class Register():
             return self.binary
         if encoding == 'ascii':
             return self.ascii
+        if encoding == 'deref':
+            return self.deref
         return None
 
     def __repr__(self):
@@ -174,6 +185,14 @@ class Register():
     def ascii(self):
         hexstr = self.hex[2:]
         return "".join([('.' if (int(c, 16) < 32 or int(c, 16) >= 127) else chr(int(c, 16))) for c in _chunks(hexstr, 2)])
+
+    @property
+    def deref(self):
+        if len(self.dereference) > 0:
+            return " --> ".join((hex(item[1]) if (item[0] == 'pointer') else \
+            (item[1] if (item[0] != 'string') else "\"" + item[1] \
+            .replace("\n","\\n").replace("\t","\\t") + "\"")) for item in self.dereference[1:])
+        return ""
 
     def setval(self, newval):
         self.value = int(newval)

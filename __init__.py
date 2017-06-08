@@ -11,6 +11,7 @@ iconsize = (24, 24)
 
 from register_viewer import RegisterWindow
 from memory_viewer import MemoryWindow
+from traceback_viewer import TracebackWindow
 from message_box import MessageBox
 from binaryninja import PluginCommand, log_info, log_alert, log_error
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -62,26 +63,35 @@ def show_memory_window(_bv):
     main_window.hexv = MemoryWindow(OrderedDict([(segname, 0x0) for segname in segments]))
     main_window.hexv.show()
 
-def update_registers(registers):
+def show_traceback_window(_bv):
+    global main_window
+    init_gui()
+    main_window.tb_window = TracebackWindow()
+    main_window.tb_window.update_frames([{'index': 0, 'addr': 0, 'name': 'No traceback yet'}])
+    main_window.tb_window.update_ret_address(0x0)
+    main_window.tb_window.show()
+
+def update_registers(registers, derefs):
     global main_window
     if main_window is not None:
+        dereferences = OrderedDict()
         for reg in reglist:
             try:
                 main_window.regwindow.update_single_register(reg, registers[reg])
+                dereferences[reg] = derefs[reg]
             except KeyError:
-                print("Voltron did not return a register called " + reg)
-            except TypeError:
-                log_alert("Couldn't get register state. The process may not be running, or it may be waiting for input from you.")
-                break
+                log_error("Voltron did not return a register called " + reg)
+        main_window.regwindow.update_derefs(dereferences)
         main_window.regwindow.highlight_dirty()
 
 import pprint as pp
 def update_wrapper(wrapped, bv):
     wrapped(bv)
-    reg = get_registers(bv)
-    update_registers(reg)
-    if reg is None:
-        log_error("No registers returned!")
+    try:
+        reg, derefs = get_registers(bv)
+        update_registers(reg, derefs)
+    except TypeError:
+        log_alert("Couldn't get register state. The process may not be running, or it may be waiting for input from you.")
         return
     procname = bv.file.filename.split("/")[-1].replace(".bndb","")
     for proc in psutil.process_iter():
@@ -100,7 +110,17 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.update_display('stack', memtop, mem)
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
-    log_info(get_backtrace(bv))
+                    main_window.tb_window.update_frames(get_backtrace(bv))
+                    ret_add_loc = bp - memtop + 8
+                    try:
+                        retrieved = mem[ret_add_loc:ret_add_loc + (reg_width/8)][::-1].encode('hex')
+                        if(len(retrieved) > 0):
+                            ret_add = int(retrieved, 16)
+                            main_window.tb_window.update_ret_address(ret_add)
+                    except ValueError:
+                        log_error("Tried to find the return address before the stack was set up. Carry on.")
+                    break
+            break
 
 def enable_dynamics(bv):
     global main_window, reg_prefix, reg_width
@@ -128,9 +148,10 @@ def enable_dynamics(bv):
     else:
         log_alert("No main function found, so no breakpoints were set")
     show_message("Placing windows")
-    show_register_window(bv)
     set_bv(bv)
+    show_register_window(bv)
     show_memory_window(bv)
+    show_traceback_window(bv)
     main_window.messagebox.hide()
 
 def picker_callback(x):
@@ -139,6 +160,7 @@ def picker_callback(x):
 
 add_picker(['lldb', 'gdb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Features", "Enables features for dynamic analysis on this binary view", enable_dynamics)
+PluginCommand.register("Close All Windows", "Closes the entire application", lambda _bv: QApplication.instance().closeAllWindows())
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/terminal.png", iconsize, lambda bv: spawn_terminal(debugger + " " + bv.file.filename), "Open a terminal with the selected debugger session")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(".binaryninja/plugins/binja_voltron_toolbar/icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")

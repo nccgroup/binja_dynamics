@@ -1,11 +1,11 @@
 from __future__ import print_function
 from binja_toolbar import add_image_button, set_bv, add_picker
 from binja_spawn_terminal import spawn_terminal
-from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint, get_memory, get_backtrace
+from binjatron import run_binary, step_one, step_over, step_out, continue_exec, get_registers, sync, set_breakpoint, get_memory, get_backtrace, register_next_sync_callback
 from collections import OrderedDict
 from functools import partial
 from time import sleep
-import psutil
+import psutil, threading
 
 iconsize = (24, 24)
 
@@ -13,7 +13,7 @@ from register_viewer import RegisterWindow
 from memory_viewer import MemoryWindow
 from traceback_viewer import TracebackWindow
 from message_box import MessageBox
-from binaryninja import PluginCommand, log_info, log_alert, log_error
+from binaryninja import PluginCommand, log_info, log_alert, log_error, execute_on_main_thread_and_wait
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -89,6 +89,9 @@ def update_registers(registers, derefs):
         main_window.regwindow.update_derefs(dereferences)
         main_window.regwindow.highlight_dirty()
 
+def signal_sync_done(bv, _results):
+    execute_on_main_thread_and_wait(lambda: update_wrapper(lambda _: log_info("Called update wrapper within callback"), bv))
+
 import pprint as pp
 def update_wrapper(wrapped, bv):
     wrapped(bv)
@@ -97,6 +100,7 @@ def update_wrapper(wrapped, bv):
         update_registers(reg, derefs)
     except TypeError:
         log_alert("Couldn't get register state. The process may not be running, or it may be waiting for input from you.")
+        register_next_sync_callback(partial(signal_sync_done, bv))
         return
     procname = bv.file.filename.split("/")[-1].replace(".bndb","")
     for proc in psutil.process_iter():
@@ -115,6 +119,7 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.update_display('stack', memtop, mem)
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
+                    main_window.hexv.redraw()
                     main_window.tb_window.update_frames(get_backtrace(bv))
                     ret_add_loc = bp - memtop + 8
                     try:

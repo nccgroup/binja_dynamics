@@ -94,3 +94,6 @@ class MemoryWindow(QtWidgets.QWidget):
         if self.base_pointer != self.stack_pointer:
             self.highlight_bytes_at_address('stack', bp+width, width, QColor(255, 153, 51))
         self.base_pointer = bp
+
+    def redraw(self):
+        self.get_widget(self._picker.currentIndex()).redraw()

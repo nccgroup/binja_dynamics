@@ -25,6 +25,9 @@ debugger = "lldb"
 reg_width = 64
 reg_prefix = 'r'
 
+def navigate_to_address(bv, address):
+    bv.file.navigate(bv.file.view, address)
+
 def init_gui():
     global main_window
     if main_window is None:
@@ -63,12 +66,14 @@ def show_memory_window(_bv):
     main_window.hexv = MemoryWindow(OrderedDict([(segname, 0x0) for segname in segments]))
     main_window.hexv.show()
 
-def show_traceback_window(_bv):
+def show_traceback_window(bv):
     global main_window
     init_gui()
     main_window.tb_window = TracebackWindow()
     main_window.tb_window.update_frames([{'index': 0, 'addr': 0, 'name': 'No traceback yet'}])
     main_window.tb_window.update_ret_address(0x0)
+    main_window.tb_window.set_button_handler(partial(navigate_to_address, bv))
+    main_window.tb_window.set_hyperlink_handler(lambda addr: navigate_to_address(bv, int(addr.toString())))
     main_window.tb_window.show()
 
 def update_registers(registers, derefs):
@@ -144,7 +149,7 @@ def enable_dynamics(bv):
     funcs = [f for f in filter(lambda b: b.name == 'main', bv.functions)]
     if(len(funcs) != 0):
         set_breakpoint(bv, funcs[0].start)
-        bv.file.navigate(bv.file.view, funcs[0].start)
+        navigate_to_address(bv, funcs[0].start)
     else:
         log_alert("No main function found, so no breakpoints were set")
     show_message("Placing windows")

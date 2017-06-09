@@ -15,7 +15,7 @@ class TracebackWindow(QtWidgets.QWidget):
         super(TracebackWindow, self).__init__()
         self.framelist = []
         self.ret_add = 0x0
-
+        self.setWindowTitle("Traceback")
         self.setLayout(QtWidgets.QVBoxLayout())
         self._layout = self.layout()
 

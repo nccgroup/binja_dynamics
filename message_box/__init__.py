@@ -6,7 +6,8 @@ class MessageBox(QtWidgets.QWidget):
 
     def __init__(self, text="Loading..."):
         super(MessageBox, self).__init__()
-
+        self.setWindowTitle("Messages")
+        
         self.setLayout(QtWidgets.QHBoxLayout())
         self._layout = self.layout()
 

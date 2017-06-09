@@ -70,7 +70,7 @@ def show_traceback_window(bv):
     global main_window
     init_gui()
     main_window.tb_window = TracebackWindow()
-    main_window.tb_window.update_frames([{'index': 0, 'addr': 0, 'name': 'No traceback yet'}])
+    main_window.tb_window.update_frames([{'index': 0, 'addr': 0, 'name': 'None'}])
     main_window.tb_window.update_ret_address(0x0)
     main_window.tb_window.set_button_handler(partial(navigate_to_address, bv))
     main_window.tb_window.set_hyperlink_handler(lambda addr: navigate_to_address(bv, int(addr.toString())))

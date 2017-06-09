@@ -35,7 +35,7 @@ class RegisterWindow(QtWidgets.QWidget):
 
     def __init__(self, registers=None):
         super(RegisterWindow, self).__init__()
-
+        self.setWindowTitle("Registers")
         self.setLayout(QtWidgets.QVBoxLayout())
         self._layout = self.layout()
 

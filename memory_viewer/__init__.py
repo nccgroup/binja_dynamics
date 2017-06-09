@@ -15,7 +15,7 @@ class MemoryWindow(QtWidgets.QWidget):
         Takes either no arguments, or a dict containing segment names and starting addresses
         """
         super(MemoryWindow, self).__init__()
-
+        self.setWindowTitle("Memory")
         self.stack_pointer = None
         self.base_pointer = None
 

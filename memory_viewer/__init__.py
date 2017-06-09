@@ -70,7 +70,7 @@ class MemoryWindow(QtWidgets.QWidget):
         return None
 
     def update_display(self, segment, address, new_memory):
-        print("Got", len(new_memory), "bytes to push to", segment, "at", hex(address))
+        # print("Got", len(new_memory), "bytes to push to", segment, "at", hex(address))
         self.get_widget(segment).update_addr(0x0, new_memory)
         self.get_widget(segment).set_new_offset(address)
 

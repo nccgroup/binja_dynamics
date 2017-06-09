@@ -27,6 +27,8 @@ class TracebackWindow(QtWidgets.QWidget):
         self._ret.setFlat(True)
         self._layout.addWidget(self._ret)
 
+        self.resize(self.width(), int(self.height() * 0.5))
+
         self.setObjectName('Traceback_Window')
 
     def update_frames(self, framelist):

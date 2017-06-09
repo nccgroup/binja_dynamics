@@ -20,7 +20,7 @@ from PyQt5.QtGui import QColor
 
 main_window = None
 reglist = []
-segments = ['stack']
+segments = ['stack', 'bss']
 debugger = "lldb"
 reg_width = 64
 reg_prefix = 'r'
@@ -80,6 +80,9 @@ def update_registers(registers, derefs):
     global main_window
     if main_window is not None:
         dereferences = OrderedDict()
+        if(len(registers.keys()) == 0):
+            log_alert("Got a response from Voltron, but no registers. The process has probably exited.")
+            return
         for reg in reglist:
             try:
                 main_window.regwindow.update_single_register(reg, registers[reg])
@@ -119,6 +122,14 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.update_display('stack', memtop, mem)
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
+
+                    try:
+                        bss = bv.sections['.bss']
+                        bssmem = get_memory(bv, bss.start, bss.length)
+                        main_window.hexv.update_display('bss', bss.start, bssmem)
+                    except KeyError:
+                        log_info('Binary has no bss section!')
+
                     main_window.hexv.redraw()
                     main_window.tb_window.update_frames(get_backtrace(bv))
                     ret_add_loc = bp - memtop + 8

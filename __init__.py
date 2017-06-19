@@ -97,7 +97,9 @@ def signal_sync_done(bv, _results):
 
 import pprint as pp
 def update_wrapper(wrapped, bv):
+    # Call wrapped function
     wrapped(bv)
+    # Handle Register Updates
     try:
         reg, derefs = get_registers(bv)
         update_registers(reg, derefs)
@@ -105,11 +107,13 @@ def update_wrapper(wrapped, bv):
         log_alert("Couldn't get register state. The process may not be running, or it may be waiting for input from you.")
         register_next_sync_callback(partial(signal_sync_done, bv))
         return
+    # Handle Memory Updates
     procname = bv.file.filename.split("/")[-1].replace(".bndb","")
     for proc in psutil.process_iter():
-        if proc.name() == procname:
+        if proc.name() == procname: # Found debugged process
             maps = proc.memory_maps(grouped=False)
             for m in maps:
+                # Update Stack
                 if(m.path.strip("[]") == 'stack'):
                     addr = m.addr.split("-")
                     high = int(addr[1],16)
@@ -123,6 +127,7 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
 
+                    # Update BSS
                     try:
                         bss = bv.sections['.bss']
                         bssmem = get_memory(bv, bss.start, bss.length)
@@ -131,6 +136,7 @@ def update_wrapper(wrapped, bv):
                         log_info('Binary has no bss section!')
 
                     main_window.hexv.redraw()
+                    # Update traceback
                     main_window.tb_window.update_frames(get_backtrace(bv))
                     ret_add_loc = bp - memtop + 8
                     try:

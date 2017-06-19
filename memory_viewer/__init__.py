@@ -92,7 +92,7 @@ class MemoryWindow(QtWidgets.QWidget):
         if self.base_pointer is not None:
             self.get_widget('stack').clear_highlight(self.base_pointer+width)
         if self.base_pointer != self.stack_pointer:
-            self.highlight_bytes_at_address('stack', bp+width, width, QColor(255, 153, 51))
+            self.highlight_bytes_at_address('stack', bp+width, width, Qt.darkRed)
         self.base_pointer = bp
 
     def redraw(self):

@@ -9,3 +9,8 @@ git clone https://github.com/ehennenfent/binja_toolbar.git
 git clone https://github.com/ehennenfent/binja_spawn_terminal.git
 git clone https://github.com/ehennenfent/binjatron.git
 git clone https://github.com/ehennenfent/hexview.git
+
+cd ~/Downloads
+git clone https://github.com/snare/voltron
+cd voltron
+./install.sh

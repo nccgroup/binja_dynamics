@@ -13,4 +13,4 @@ git clone https://github.com/ehennenfent/hexview.git
 cd ~/Downloads
 git clone https://github.com/snare/voltron
 cd voltron
-./install.sh
+./install.sh -b lldb

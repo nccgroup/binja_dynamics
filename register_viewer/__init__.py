@@ -101,7 +101,14 @@ class RegisterWindow(QtWidgets.QWidget):
     def _update_flag_display(self, value):
         values = parse_flag_register(value)
         for i in range(len(flagbits.keys())):
+            oldval = self._flags.item(0, i)
+            if oldval is not None:
+                oldval = oldval.text()
             self._flags.setItem(0, i, _makewidget("1" if (values[values.keys()[i]]) else "0", True))
+            if self._flags.item(0, i).text() != oldval:
+                self._flags.item(0, i).setForeground(highlight)
+            else:
+                self._flags.item(0, i).setForeground(default)
 
     def change_display_mode(self, mode):
         if type(mode) is int:

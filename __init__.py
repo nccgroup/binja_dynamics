@@ -12,6 +12,7 @@ iconsize = (24, 24)
 from register_viewer import RegisterWindow
 from memory_viewer import MemoryWindow
 from traceback_viewer import TracebackWindow
+from terminal_emulator import TerminalWindow
 from message_box import MessageBox
 from binaryninja import PluginCommand, log_info, log_alert, log_error, execute_on_main_thread_and_wait
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -196,3 +197,8 @@ add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, 
 add_image_button(path + "icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")
 add_image_button(path + "icons/finish.png", iconsize, partial(update_wrapper, step_out), "Step out of stack frame")
 add_image_button(path + "icons/continue.png", iconsize, partial(update_wrapper, continue_exec), "Continue to next breakpoint")
+
+
+init_gui()
+main_window.term_window = TerminalWindow()
+main_window.term_window.show()

@@ -58,13 +58,18 @@ class TerminalWindow(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QVBoxLayout())
         self._layout = self.layout()
         self._sublayout = QtWidgets.QHBoxLayout()
+        self._statusbar = QtWidgets.QHBoxLayout()
 
         self._textBrowser = QtWidgets.QTextBrowser()
         self._textBrowser.setOpenLinks(False)
         self._textBrowser.setTextColor(self.palette().color(QPalette.WindowText))
+        self._textBrowser.textChanged.connect(self.handle_new_output)
+        self._textBrowser.selectionChanged.connect(self.handle_selection_changed)
         self._layout.addWidget(self._textBrowser)
 
         self._textbox = QtWidgets.QLineEdit()
+        self._textbox.textChanged.connect(self.handle_text_changed)
+        self._textbox.cursorPositionChanged.connect(self.handle_cursor_change)
         self._sublayout.addWidget(self._textbox)
         self._decoder = QtWidgets.QComboBox()
         for mode in self._encodings:
@@ -84,6 +89,17 @@ class TerminalWindow(QtWidgets.QWidget):
 
         self._sublayout.addWidget(self._hist_button)
         self._layout.addLayout(self._sublayout)
+
+        self._leftLabel = QtWidgets.QLabel()
+        self._rightLabel = QtWidgets.QLabel()
+        self._rightLabel.setAlignment(Qt.AlignRight)
+
+        self._leftLabel.setText("0, 0")
+        self._rightLabel.setText("0, 0, +0")
+
+        self._statusbar.addWidget(self._leftLabel)
+        self._statusbar.addWidget(self._rightLabel)
+        self._layout.addLayout(self._statusbar)
 
         self._messages = Queue()
         self._pty_thread = TerminalThread(self._messages)
@@ -115,6 +131,7 @@ class TerminalWindow(QtWidgets.QWidget):
             action.triggered.connect(partial(self.set_text_box_contents, raw))
             self._hist_menu.insertAction(self._hist_menu.actions()[0], action)
         self._messages.put((line, None))
+        self._autoscroll()
         self._textBrowser.setTextColor(usercolor)
         self._textBrowser.insertPlainText(line + "\n")
         self._textBrowser.setTextColor(self.palette().color(QPalette.WindowText))
@@ -148,3 +165,22 @@ class TerminalWindow(QtWidgets.QWidget):
     def set_text_box_contents(self, newcontents):
         self._textbox.clear()
         self._textbox.insert(newcontents)
+
+    def handle_cursor_change(self, old, new):
+        oldtext = self._leftLabel.text().split(', ')
+        self._leftLabel.setText(str(new) + ', ' + oldtext[1])
+
+    def handle_text_changed(self, newText):
+        oldtext = self._leftLabel.text().split(', ')
+        self._leftLabel.setText(oldtext[0] + ', ' + str(len(newText)))
+
+    def handle_new_output(self):
+        oldtext = self._rightLabel.text().split(', +')[0].split(', ')
+        oldlen, newlen = int(oldtext[1]), len(self._textBrowser.toPlainText())
+        self._rightLabel.setText(oldtext[0] + ', ' + str(newlen) + ', +' + str(newlen-oldlen))
+
+    def handle_selection_changed(self):
+        oldtext = self._rightLabel.text().split(', +')[0].split(', ')
+        oldR = self._rightLabel.text().split(', +')[1]
+        selection = self._textBrowser.textCursor().selectedText()
+        self._rightLabel.setText(str(len(selection)) + ', ' + oldtext[1] + ', +'+ oldR)

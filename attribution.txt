@@ -6,5 +6,6 @@ stepover.png - Arrow by Vladimir Belochkin from the Noun Project
 continue.png - right by Gregor Cresnar from the Noun Project
 finish.png - up by Yuki Orikasa from the Noun Project
 sync.png - Sync by Miroku Sama from the Noun Project
-backtrace.png Fast Rewind by Creative Stall from the Noun Project
+backtrace.png - Fast Rewind by Creative Stall from the Noun Project
+history.png - History by Chinnaking from the Noun Project
 loading.gif - File:Loading icon.gif by Ahm masum from https://commons.wikimedia.org/wiki/File:Loading_icon.gif

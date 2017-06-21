@@ -1,7 +1,7 @@
 from __future__ import print_function
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
-from PyQt5.QtGui import QColor, QPalette, QTextCursor, QIcon
+from PyQt5.QtGui import QColor, QPalette, QTextCursor, QIcon, QFontDatabase
 from base64 import b64decode
 
 import pty, select, os
@@ -65,6 +65,7 @@ class TerminalWindow(QtWidgets.QWidget):
         self._textBrowser.setTextColor(self.palette().color(QPalette.WindowText))
         self._textBrowser.textChanged.connect(self.handle_new_output)
         self._textBrowser.selectionChanged.connect(self.handle_selection_changed)
+        self._textBrowser.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self._layout.addWidget(self._textBrowser)
 
         self._textbox = QtWidgets.QLineEdit()
@@ -145,7 +146,7 @@ class TerminalWindow(QtWidgets.QWidget):
     def decode(self, encoded):
         mode = self._encodings[self._decoder.currentIndex()]
         if mode == 'raw':
-            return encoded
+            return str(encoded)
         try:
             if mode == 'hex':
                 return encoded.decode('hex')
@@ -165,6 +166,12 @@ class TerminalWindow(QtWidgets.QWidget):
     def set_text_box_contents(self, newcontents):
         self._textbox.clear()
         self._textbox.insert(newcontents)
+
+    def bring_to_front(self):
+        self._textbox.setFocus()
+        self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+        self.raise_()
+        self.activateWindow()
 
     def handle_cursor_change(self, old, new):
         oldtext = self._leftLabel.text().split(', ')

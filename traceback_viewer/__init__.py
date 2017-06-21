@@ -1,10 +1,7 @@
 from __future__ import print_function
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
-from hexview import HexDisplay
-from collections import OrderedDict
-from functools import partial
+from PyQt5.QtGui import QColor, QFontDatabase
 
 def padhex(val, length):
     return "0x{}".format('0'*(length - len(hex(val)))) + hex(val).split('0x')[1]
@@ -21,6 +18,7 @@ class TracebackWindow(QtWidgets.QWidget):
 
         self._textBrowser = QtWidgets.QTextBrowser()
         self._textBrowser.setOpenLinks(False)
+        self._textBrowser.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self._layout.addWidget(self._textBrowser)
 
         self._ret = QtWidgets.QPushButton()

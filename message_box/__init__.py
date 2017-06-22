@@ -3,11 +3,13 @@ from PyQt5.QtCore import Qt, QByteArray
 from PyQt5 import QtGui
 
 class MessageBox(QtWidgets.QWidget):
+    """ Not actually used for anything. Binja implements its own interface for this.
+    Will likely be deleted soon.""" 
 
     def __init__(self, text="Loading..."):
         super(MessageBox, self).__init__()
         self.setWindowTitle("Messages")
-        
+
         self.setLayout(QtWidgets.QHBoxLayout())
         self._layout = self.layout()
 

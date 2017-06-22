@@ -6,12 +6,16 @@ from hexview import HexDisplay
 from collections import OrderedDict
 
 class MemoryWindow(QtWidgets.QWidget):
+    """
+    GUI for displaying a live dump of the memory of an executing binary
+    """
     _segments = ['stack', 'bss', 'data']
     segment_starts = None
     display_segment = 'stack'
 
     def __init__(self, segments=None):
         """
+        Initializes GUI components. 
         Takes either no arguments, or a dict containing segment names and starting addresses
         """
         super(MemoryWindow, self).__init__()
@@ -32,8 +36,10 @@ class MemoryWindow(QtWidgets.QWidget):
         for segment in self._segments:
             self._picker.addItem(segment)
         self._layout.addWidget(self._picker)
+        # Call change_display_segment whenever the user messes with the combobox
         self._picker.currentIndexChanged.connect(self.change_display_segment)
 
+        # viewstack controls switching between the different segments views
         self.viewstack = QtWidgets.QStackedWidget()
         for segment in self._segments:
             if self.segment_starts is None:
@@ -49,6 +55,7 @@ class MemoryWindow(QtWidgets.QWidget):
         self.setObjectName('Memory_Window')
 
     def change_display_segment(self, segment):
+        """ Swaps the displayed segment. Takes a segment name or an index."""
         if type(segment) is int:
             if (segment < 0) or (segment >= len(self._segments)):
                 print("segment index out of range")
@@ -61,6 +68,7 @@ class MemoryWindow(QtWidgets.QWidget):
         self.viewstack.setCurrentIndex(self._segments.index(segment))
 
     def get_widget(self, index):
+        """ Returns the index-th hexview in the stack """
         if type(index) is str:
             return self.viewstack.widget(self._segments.index(index))
         if type(index) is int:
@@ -70,20 +78,27 @@ class MemoryWindow(QtWidgets.QWidget):
         return None
 
     def update_display(self, segment, address, new_memory):
+        """ Updates the displayed memory. The way this is currently implemented,
+        memory should always be pushed to 0x0 and the offset updated manually.
+        Any memory at addresses after the end of the new buffer will simply be lost."""
         # print("Got", len(new_memory), "bytes to push to", segment, "at", hex(address))
         self.get_widget(segment).update_addr(0x0, new_memory)
         self.get_widget(segment).set_new_offset(address)
 
     def highlight_bytes_at_address(self, segment, address, length, color=Qt.red):
+        """ Helper function for highlighting """
         self.get_widget(segment).highlight_address(address, length, color)
 
     def highlight_stack_pointer(self, sp, width=8):
+        """ Removes old stack pointer highlights and creates a new one """
         if self.stack_pointer is not None:
             self.get_widget('stack').clear_highlight(self.stack_pointer)
         self.highlight_bytes_at_address('stack', sp, width, QColor(0xA2, 0xD9, 0xAF))
         self.stack_pointer = sp
 
     def highlight_base_pointer(self, bp, width=8):
+        """ Highlights the base pointer, and highlights the memory addresses immediately following
+        it, which usually correspond to the return address."""
         # Base Pointer
         if self.base_pointer is not None:
             self.get_widget('stack').clear_highlight(self.base_pointer)

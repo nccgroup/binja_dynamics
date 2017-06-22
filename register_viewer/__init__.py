@@ -7,6 +7,7 @@ from collections import OrderedDict
 monospace = QFontDatabase.systemFont(QFontDatabase.FixedFont)
 highlight = QBrush(QColor(255, 153, 51))
 default = QBrush(QColor(255, 255, 255))
+# Most of the flag parsing code was pinched from the Voltron repo
 flagbits = OrderedDict([('c', 0), ('p', 2), ('a', 4), ('z', 6), ('s', 7), ('t', 8), ('i', 9), ('d', 10), ('o', 11)])
 flagnames = ["Carry Flag", "Parity Flag", "Adjust Flag", "Zero Flag", "Sign Flag", "Trap Flag", "Interrupt Enable Flag", "Direction Flag", "Overflow Flag"]
 
@@ -15,6 +16,7 @@ def _chunks(l, n):
         yield l[i:i + n]
 
 def _makewidget(val, center=False):
+    """ Small helper function that builds a TableWidgetItem and sets up the font the way we want"""
     out = QtWidgets.QTableWidgetItem(str(val))
     out.setFlags(Qt.ItemIsEnabled)
     out.setFont(monospace)
@@ -23,12 +25,14 @@ def _makewidget(val, center=False):
     return out
 
 def parse_flag_register(flagsval):
+    """ Borrowed Snare's code for parsing the eflags/rflags register """
     values = OrderedDict()
     for flag in flagbits:
         values[flag] = (flagsval & (1 << flagbits[flag]) > 0)
     return values
 
 class RegisterWindow(QtWidgets.QWidget):
+    """ GUI for displaying a live dump of the contents of the registers in various formats."""
     _display_modes = ['binary', 'decimal', 'hex', 'ascii', 'deref']
     registers = OrderedDict()
     display_mode = 'hex'
@@ -39,6 +43,7 @@ class RegisterWindow(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QVBoxLayout())
         self._layout = self.layout()
 
+        # Set up display mode combobox
         self._picker = QtWidgets.QComboBox()
         for mode in self._display_modes:
             self._picker.addItem(mode)
@@ -46,6 +51,7 @@ class RegisterWindow(QtWidgets.QWidget):
         self._layout.addWidget(self._picker)
         self._picker.currentIndexChanged.connect(self.change_display_mode)
 
+        # Set up register table
         self._table = QtWidgets.QTableWidget()
         self._table.setColumnCount(2)
         self._table.setHorizontalHeaderLabels(['Register', 'Value'])
@@ -53,6 +59,7 @@ class RegisterWindow(QtWidgets.QWidget):
         self._table.verticalHeader().setVisible(False)
         self._layout.addWidget(self._table)
 
+        # Set up flag viewer
         self._flags = QtWidgets.QTableWidget()
         self._flags.setColumnCount(len(flagbits.keys()))
         self._flags.setHorizontalHeaderLabels(flagbits.keys())
@@ -73,13 +80,14 @@ class RegisterWindow(QtWidgets.QWidget):
             self.update_registers(registers)
 
     def update_registers(self, registers):
-        """ Takes a dict of registers - 'name' : (value, width)"""
+        """ Takes a dict of registers - 'name' : (value, width). Mostly just a wrapper around update_single_registers"""
         self._table.setRowCount(len(registers))
         for register in registers:
             self.update_single_register(register, registers[register][0], registers[register][1])
         self.resize(QSize(self._layout.sizeHint().width(), self._table.viewportSizeHint().height() + self._picker.sizeHint().height() + self._table.sizeHint().height()))
 
     def update_single_register(self, name, value, width=32):
+        """ Updates a single register (and adds it if it doesn't exist). Cleans registers if dirty values have been highlighted"""
         if(self.should_clean):
             for reg in self.registers:
                 self.registers[reg].dirty = False
@@ -95,10 +103,14 @@ class RegisterWindow(QtWidgets.QWidget):
         self.should_clean = False
 
     def _update_table_entry(self, name):
+        """ Replaces the table widgets for a given register."""
         self._table.setItem(self.registers[name].index, 0, _makewidget(self.registers[name].name))
+        # Passes the display mode to regsiter.getitem
         self._table.setItem(self.registers[name].index, 1, _makewidget(self.registers[name][self.display_mode]))
 
     def _update_flag_display(self, value):
+        """ Handles dirty flag highlighting and updates in general. This is simpler than the register
+        highlighting, which is why it thinks all the flags need to be highlighted when first launched."""
         values = parse_flag_register(value)
         for i in range(len(flagbits.keys())):
             oldval = self._flags.item(0, i)
@@ -111,6 +123,9 @@ class RegisterWindow(QtWidgets.QWidget):
                 self._flags.item(0, i).setForeground(default)
 
     def change_display_mode(self, mode):
+        """ Changes the way register values are decoded. Default is as hexadecimal, but
+        also supports integer, binary, ascii, and dereferencing the register value
+        as a pointer (thanks voltron!)"""
         if type(mode) is int:
             if (mode < 0) or (mode >= len(self._display_modes)):
                 print("Mode index out of range")
@@ -126,6 +141,9 @@ class RegisterWindow(QtWidgets.QWidget):
         self.highlight_dirty()
 
     def highlight_dirty(self):
+        """ Highlights any registers that have been marked as dirty, and indicates that
+        all registers should be cleaned next time the values are updated (Note: NOT the next
+        time the display mode is changed)"""
         for reg in self.registers:
             reg = self.registers[reg]
             if(reg.dirty):
@@ -141,6 +159,8 @@ class RegisterWindow(QtWidgets.QWidget):
         self.should_clean = True
 
     def update_derefs(self, derefs):
+        """ Updates dereference values for each register. Necessary because
+        derefs are stored separately from values (not pulled live)"""
         for reg in derefs.keys():
             if self.registers[reg].dereference != derefs[reg]:
                 self.registers[reg].dereference = derefs[reg]
@@ -157,6 +177,7 @@ class Register():
         self.dereference = []
 
     def __getitem__(self, encoding):
+        # If you want to add a new encoding, you'll need to also add it here
         if encoding == 'hex':
             return self.hex
         if encoding == 'decimal':
@@ -180,6 +201,8 @@ class Register():
 
     @property
     def decimal(self):
+        """ Registers are stored as decimal by default, so that's how they should
+        be passed to setval """
         return self.value
 
     @property
@@ -196,11 +219,13 @@ class Register():
     @property
     def deref(self):
         if len(self.dereference) > 0:
+            # Voltron gives us an array of the values in sequence
             return " --> ".join((hex(item[1]) if (item[0] == 'pointer') else \
             (item[1] if (item[0] != 'string') else "\"" + item[1] \
             .replace("\n","\\n").replace("\t","\\t") + "\"")) for item in self.dereference[1:])
         return ""
 
     def setval(self, newval):
+        """ Changes the register value and marks it as having changed since the last cleaning """
         self.value = int(newval)
         self.dirty = True

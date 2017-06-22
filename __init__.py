@@ -1,9 +1,9 @@
 from __future__ import print_function
 from binja_toolbar import add_image_button, set_bv, add_picker
-from binja_spawn_terminal import spawn_terminal
-from binjatron import run_binary, step_one, step_over, step_out, \
+from binjatron_extensions import run_binary, step_one, step_over, step_out, \
     continue_exec, get_registers, sync, set_breakpoint, get_memory, \
-    get_backtrace, register_next_sync_callback, set_tty
+    get_backtrace, register_sync_callback, set_tty, sync_state
+from binja_spawn_terminal import spawn_terminal
 from collections import OrderedDict
 from functools import partial
 from time import sleep
@@ -149,7 +149,7 @@ def update_wrapper(wrapped, bv):
         # If something went wrong with the last update, we register a callback that will get run
         # the next time we have a sucessful sync. We partially apply the arguments on the callback
         # so we don't lose our reference to the binary view. See docstring on signal_sync_done for more
-        register_next_sync_callback(partial(signal_sync_done, bv))
+        register_sync_callback(partial(signal_sync_done, bv), should_delete=True)
         return
     # Handle Memory Updates
     procname = bv.file.filename.split("/")[-1].replace(".bndb","")
@@ -250,6 +250,10 @@ def terminal_wrapper(bv):
     spawn_terminal(debugger + " " + bv.file.filename.replace(".bndb",""))
     if hasattr(main_window, 'term_window'):
         if "gdb" in debugger:
+            for i in range(5):
+                if sync_state():
+                    break
+                sleep(1)
             set_tty(bv, main_window.term_window.tty)
 
 add_picker(['gdb', 'lldb'], picker_callback)

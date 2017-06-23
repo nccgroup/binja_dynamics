@@ -24,7 +24,7 @@ from PyQt5.QtGui import QColor
 main_window = None
 reglist = []
 segments = ['stack', 'bss']
-debugger = "gdb"
+debugger = "gdb -q"
 reg_width = 64
 reg_prefix = 'r'
 
@@ -234,7 +234,7 @@ def enable_dynamics(bv):
     show_register_window(bv)
     show_memory_window(bv)
     show_traceback_window(bv)
-    if(debugger == 'gdb'):
+    if('gdb' in debugger):
         show_terminal_window(bv)
         # Tell GDB to hand off io from the binary to our pseudoterminal
         set_tty(bv, main_window.term_window.tty)

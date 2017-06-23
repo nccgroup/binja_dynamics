@@ -26,14 +26,15 @@ cd binja_dynamics
 ./install.sh
 ```
 
-## Documentation
-This project is intended to help beginners gain insight into the way binaries execute. Please consult [the wiki](https://github.com/ehennenfent/binja_dynamics/wiki) for helpful examples that may aid you in getting started.
-
 ## Usage
 After loading a binary, click the `Enable Dynamic Analysis Tools` item in the tools menu.
 
+## Documentation
+This project is intended to help beginners gain insight into the way binaries execute. Please consult [the wiki](https://github.com/ehennenfent/binja_dynamics/wiki) for helpful examples that may aid you in getting started.
+
 ## Current Limitations
-* binja_dynamics has only been tested on Ubuntu 16.04. You are encouraged to file a pull request or open an issue for any incompatibilities.
+*
+* binja_dynamics has only been tested on Ubuntu 16.04. Once again, pull requests and issues are welcome.
 * Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. See [this thread](https://askubuntu.com/a/577088) for assistance with that.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
 

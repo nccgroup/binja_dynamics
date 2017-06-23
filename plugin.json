@@ -1,0 +1,23 @@
+{
+	"plugin": {
+		"name": "Binary Ninja Dynamic Analysis Tools",
+		"type": ["ui", "dynamic"],
+		"api": "python2",
+		"description": "Adds a live debugger and other dynamic tools to Binary Ninja",
+		"longdescription": "Uses Binjatron to add a live debugger, memory viewer, register viewer, and traceback viewer to Binary Ninja, complete with highlighting that should make it easier for beginners to identify what happens when a binary executes.",
+		"license": {
+					 "name": "IDK, MIT Probably?",
+					 "text": "NCC's legal team can figure this out."
+			 },
+		"dependencies": {
+			"pip": ["psutil", "six"],
+			"apt": ["python-pyqt5", "gdb"],
+		},
+		"version": "0.1 alpha",
+		"author": "Eric Hennenfent",
+		"minimumBinaryNinjaVersion": {
+			"dev": "1.0.dev-576",
+			"release": "9999"
+		}
+	}
+}

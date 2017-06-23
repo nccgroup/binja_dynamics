@@ -24,7 +24,7 @@ After loading a binary, click the `Enable Dynamic Analysis Tools` item in the to
 
 ## Current Limitations
 * binja_dynamics has only been tested on Ubuntu 16.04. You are encouraged to file a pull request or open an issue for any incompatibilities.
-* When opening a .bndb file, the binary must be stored in the same directory
+* Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. See [this thread](https://askubuntu.com/a/577088) for assistance with that.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
 
 ## Third-party Components

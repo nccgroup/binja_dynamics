@@ -10,18 +10,33 @@ cd binja_dynamics
 ./install.sh
 ```
 
+## Components
+* Debugger toolbar
+* Register viewer
+* Stack viewer
+* Backtrace viewer
+
+## Documentation
+This project is intended to help beginners gain insight into the way binaries execute. Please consult [the wiki](https://github.com/ehennenfent/binja_dynamics/wiki) for helpful examples that may aid you in getting started.
+
 ## Usage
 After loading a binary, click the `Enable Dynamic Analysis Tools` item in the tools menu.
 
-## Sample Utilization
-
 ## Current Limitations
-There's currently (to my knowledge) no good way to track when the user switches between open binary views, so this plugin works best when used with only a single binary open. One can make it work by reinitializing the toolbar every time one switches between binaries, but that's less than ideal. This may not be fixed until the upcoming UI API features in version 1.2.
+* binja_dynamics has only been tested on Ubuntu 16.04. You are encouraged to file a pull request or open an issue for any incompatibilities.
+* When opening a .bndb file, the binary must be stored in the same directory
+* See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
+
+## Third-party Components
+* binja_dynamics makes use of a [fork](https://github.com/ehennenfent/hexview) of [qthexedit](https://github.com/csarn/qthexedit), which is licensed under GPLv2.
+* The images used for icons are licensed under Creative Commons. See [attribution.txt](https://github.com/ehennenfent/binja_dynamics/blob/master/attribution.txt) for information on the sources.
 
 ## Requirements
-* binjatron
-* binja_toolbar
+* [binjatron](https://github.com/snare/binjatron)
+* [binja_toolbar](https://github.com/ehennenfent/binja_toolbar)
+* [binja_spawn_terminal](https://github.com/ehennenfent/binja_spawn_terminal.git)
+* [voltron](https://github.com/snare/voltron)
 * PyQt5
 * Binary Ninja
 
-<NAME> has only been tested on Ubuntu 16.04. You are encouraged to file a pull request or open an issue for any incompatibilities.
+Excluding Binary Ninja, `install.sh` will handle these dependencies for you.

@@ -33,8 +33,8 @@ After loading a binary, click the `Enable Dynamic Analysis Tools` item in the to
 This project is intended to help beginners gain insight into the way binaries execute. Please consult [the wiki](https://github.com/ehennenfent/binja_dynamics/wiki) for helpful examples that may aid you in getting started.
 
 ## Current Limitations
-*
-* binja_dynamics has only been tested on Ubuntu 16.04. Once again, pull requests and issues are welcome.
+* Currently, only x86 binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.
+* binja_dynamics has only been tested on Ubuntu 16.04. While Windows support is likely out of the question, it may be possible to get reasonable functionality on other unix platforms. Once again, pull requests and issues are welcome.
 * Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. See [this thread](https://askubuntu.com/a/577088) for assistance with that.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
 

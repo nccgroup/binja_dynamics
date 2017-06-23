@@ -5,8 +5,8 @@ This project uses [Binjatron](https://github.com/snare/binjatron) to add live de
 ## Installation
 Inside your [Binary Ninja plugins folder](https://github.com/Vector35/binaryninja-api/tree/master/python/examples#loading-plugins), run:
 ```bash
-git clone <TODO>
-cd <TODO>
+git clone https://github.com/ehennenfent/binja_dynamics.git
+cd binja_dynamics
 ./install.sh
 ```
 

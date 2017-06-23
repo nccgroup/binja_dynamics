@@ -2,7 +2,7 @@ sudo apt update
 sudo apt install git lldb gdb
 sudo apt install python-pyqt5 python-pip python-dev python-apt
 sudo -H pip install --upgrade pip
-sudo -H pip install -r ~/.binaryninja/plugins/binja_voltron_toolbar/requirements.txt
+sudo -H pip install -r ~/.binaryninja/plugins/binja_dynamics/requirements.txt
 
 cd ~/.binaryninja/plugins
 git clone https://github.com/ehennenfent/binja_toolbar.git

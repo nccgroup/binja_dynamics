@@ -260,7 +260,7 @@ add_picker(['gdb', 'lldb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Features", "Enables features for dynamic analysis on this binary view", enable_dynamics)
 PluginCommand.register("Close All Windows", "Closes the entire application", lambda _bv: QApplication.instance().closeAllWindows())
 import os
-path = os.path.expanduser("~") + '/.binaryninja/plugins/binja_voltron_toolbar/'
+path = os.path.expanduser("~") + '/.binaryninja/plugins/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
 add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")

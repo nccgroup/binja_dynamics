@@ -15,13 +15,14 @@ class MemoryWindow(QtWidgets.QWidget):
 
     def __init__(self, segments=None):
         """
-        Initializes GUI components. 
+        Initializes GUI components.
         Takes either no arguments, or a dict containing segment names and starting addresses
         """
         super(MemoryWindow, self).__init__()
         self.setWindowTitle("Memory")
         self.stack_pointer = None
         self.base_pointer = None
+        self.instr_pointer = None
 
         if segments is not None:
             if type(segments) is not OrderedDict:
@@ -109,6 +110,13 @@ class MemoryWindow(QtWidgets.QWidget):
         if self.base_pointer != self.stack_pointer:
             self.highlight_bytes_at_address('stack', bp+width, width, Qt.darkRed)
         self.base_pointer = bp
+
+    def highlight_instr_pointer(self, ip):
+        """ Removes old instruction pointer highlights and creates a new one """
+        if self.instr_pointer is not None:
+            self.get_widget('stack').clear_highlight(self.instr_pointer)
+        self.highlight_bytes_at_address('stack', ip, 1, Qt.red)
+        self.instr_pointer = ip
 
     def redraw(self):
         self.get_widget(self._picker.currentIndex()).redraw()

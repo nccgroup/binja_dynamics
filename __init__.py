@@ -162,7 +162,7 @@ def update_wrapper(wrapped, bv):
                 if(m.path.strip("[]") == 'stack'):
                     addr = m.addr.split("-")
                     high = int(addr[1],16)
-                    sp, bp = reg[reg_prefix + 'sp'], reg[reg_prefix + 'bp']
+                    sp, bp, ip = reg[reg_prefix + 'sp'], reg[reg_prefix + 'bp'], reg[reg_prefix + 'ip']
                     # Lock out the top of the memory to an even multiple of 32 so we don't
                     # get confusing column-wise shifts in the display
                     memtop = sp if (sp % 32 == 0) else (sp + (32 - sp % 32) - 32)
@@ -175,6 +175,9 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.update_display('stack', memtop, mem)
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
+
+                    if (ip > memtop and ip <= high):
+                        main_window.hexv.highlight_instr_pointer(ip)
 
                     # Update BSS
                     try:
@@ -189,7 +192,7 @@ def update_wrapper(wrapped, bv):
 
                     # Update traceback
                     main_window.tb_window.update_frames(get_backtrace(bv))
-                    ret_add_loc = bp - memtop + 8
+                    ret_add_loc = bp - memtop + (reg_width/8)
                     # Grab the saved return address from the stack
                     try:
                         retrieved = mem[ret_add_loc:ret_add_loc + (reg_width/8)][::-1].encode('hex')

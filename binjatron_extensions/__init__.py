@@ -6,6 +6,7 @@ def _build_command_dict(cmd):
 
 def run_binary(_view):
     binjatron.custom_request("command", _build_command_dict("run"))
+    log_error("returned from binjatron okay")
 
 def step_one(_view):
     binjatron.custom_request("command", _build_command_dict("si"))

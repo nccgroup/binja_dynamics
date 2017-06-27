@@ -124,13 +124,19 @@ def signal_sync_done(bv, _results):
     """ Callback designed to run the update_wrapper function again immediately after we've had our first successful sync
     after being unable to succesfully sync. Has to run on the main thread to prevent a crash. The outer lambda function
     calls the update wrapper, while the inner lambda function acts as a stub so that wrapped() doesn't fail. """
-    execute_on_main_thread_and_wait(lambda: update_wrapper(lambda _: log_info("Called update wrapper within callback"), bv))
+    log_error("Calling update wrapper within callback")
+    execute_on_main_thread_and_wait(partial(do_updates, bv))
 
 import pprint as pp
 def update_wrapper(wrapped, bv):
     """ Runs each time a button on the toolbar is pushed. Updates the live displays of program information """
     # Call wrapped function
     wrapped(bv)
+    log_error("Wrapped Function finished")
+    register_sync_callback(partial(signal_sync_done, bv), should_delete=True)
+    print("Sync Callback registered")
+
+def do_updates(bv):
     # Handle Register Updates
     reg, derefs = get_registers(bv) # derefs will have the error message if something goes wrong
     try:
@@ -240,7 +246,7 @@ def enable_dynamics(bv):
     if('gdb' in debugger):
         show_terminal_window(bv)
         # Tell GDB to hand off io from the binary to our pseudoterminal
-        set_tty(bv, main_window.term_window.tty)
+        # set_tty(bv, main_window.term_window.tty)
     main_window.messagebox.hide()
 
 def picker_callback(x):
@@ -257,7 +263,7 @@ def terminal_wrapper(bv):
                 if sync_state():
                     break
                 sleep(1)
-            set_tty(bv, main_window.term_window.tty)
+            # set_tty(bv, main_window.term_window.tty)
 
 add_picker(['gdb', 'lldb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Tools", "Enables features for dynamic analysis on this binary view", enable_dynamics)

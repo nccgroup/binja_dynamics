@@ -38,10 +38,7 @@ class TracebackWindow(QtWidgets.QWidget):
         padlength = max([len(hex(frame['addr'])) for frame in framelist])
         for row, frame in enumerate(framelist[::-1]):
             self._textBrowser.insertPlainText("{}. ".format(len(framelist) - frame['index']))
-            try:
-                self._textBrowser.insertHtml(" &nbsp;"*row + '<a href=\"{}\">'.format(frame['addr']) +  padhex(frame['addr'], padlength) + '</a>' + ' in ' + frame['name'])
-            except TypeError:
-                print("Something went wrong with the traceback")
+            self._textBrowser.insertHtml(" &nbsp;"*row + '<a href=\"{}\">'.format(frame['addr']) +  padhex(frame['addr'], padlength) + '</a>' + ' in ' + str(frame['name']))
             self._textBrowser.insertPlainText("\n")
         self.framelist = framelist
 

@@ -5,7 +5,10 @@ from PyQt5.QtGui import QColor, QPalette, QTextCursor, QIcon, QFontDatabase
 from base64 import b64decode
 
 import pty, select, os
-from queue import Queue
+try:
+    from queue import Queue
+except ImportError:
+    import Queue
 from functools import partial
 
 from binaryninja import log_alert, user_plugin_path

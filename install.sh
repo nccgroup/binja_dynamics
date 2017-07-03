@@ -22,4 +22,4 @@ sudo make install
 cd ~/Downloads
 git clone https://github.com/snare/voltron
 cd voltron
-./install.sh -b lldb
+./install.sh

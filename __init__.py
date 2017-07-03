@@ -16,11 +16,13 @@ from memory_viewer import MemoryWindow
 from traceback_viewer import TracebackWindow
 from terminal_emulator import TerminalWindow
 from message_box import MessageBox
-from binaryninja import PluginCommand, log_info, log_alert, log_error, execute_on_main_thread_and_wait, user_plugin_path
+from binaryninja import PluginCommand, log_info, log_alert, log_error, \
+ execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
 
+filename = None
 main_window = None
 reglist = []
 segments = ['stack', 'bss']
@@ -152,7 +154,7 @@ def update_wrapper(wrapped, bv):
         register_sync_callback(partial(signal_sync_done, bv), should_delete=True)
         return
     # Handle Memory Updates
-    procname = bv.file.filename.split("/")[-1].replace(".bndb","")
+    procname = filename.split("/")[-1] if filename is not None else bv.file.filename.split("/")[-1].replace(".bndb","")
     # Iterate through the processes on the system to find the right memory map
     for proc in psutil.process_iter():
         if proc.name() == procname: # Found debugged process
@@ -249,8 +251,12 @@ def picker_callback(x):
     debugger = "lldb" if (x == 1) else "gdb -q"
 
 def terminal_wrapper(bv):
+    global filename
     """ Makes sure we set the tty correctly if we have to spawn a new gdb window """
-    spawn_terminal(debugger + " " + bv.file.filename.replace(".bndb",""))
+    filename = bv.file.filename.replace(".bndb","")
+    if not os.path.isfile(filename):
+        filename = get_open_filename_input("Select Binary")
+    spawn_terminal(debugger + " " + filename)
     if hasattr(main_window, 'term_window'):
         if "gdb" in debugger:
             for i in range(5):

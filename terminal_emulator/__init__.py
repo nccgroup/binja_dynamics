@@ -45,7 +45,7 @@ class TerminalThread(QThread):
             r,w,_ = select.select([self.master], writefd, [], 0)
             if not r:
                 self.dirty = False
-            if r and not self.dirty:
+            if r:# and not self.dirty:
                 # Read when the binary has new output for us (that didn't come from us)
                 line = os.read(self.master, 1024) # Reads up to a kilobyte at once. Should this be higher/lower?
                 self.RECV_LINE.emit(line)
@@ -157,9 +157,9 @@ class TerminalWindow(QtWidgets.QWidget):
             self._hist_menu.insertAction(self._hist_menu.actions()[0], action)
         self._messages.put((line, None))
         self._autoscroll()
-        self._textBrowser.setTextColor(usercolor)
-        self._textBrowser.insertPlainText(line + "\n")
-        self._textBrowser.setTextColor(self.palette().color(QPalette.WindowText))
+        # self._textBrowser.setTextColor(usercolor)
+        # self._textBrowser.insertPlainText(line + "\n")
+        # self._textBrowser.setTextColor(self.palette().color(QPalette.WindowText))
         self._textbox.clear()
         self._autoscroll()
 

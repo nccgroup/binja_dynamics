@@ -4,6 +4,9 @@ from binaryninja import log_error
 def _build_command_dict(cmd):
     return {"command": cmd, "block": False}
 
+def get_version(_view):
+    return binjatron.custom_request("version", {})
+
 def run_binary(_view):
     binjatron.custom_request("command", _build_command_dict("run"))
 
@@ -20,7 +23,12 @@ def continue_exec(_view):
     binjatron.custom_request("command", _build_command_dict("continue"))
 
 def set_tty(_view, tty):
-    binjatron.custom_request("command", _build_command_dict("tty " + tty))
+    version = get_version(_view).host_version
+    if 'gdb' in version:
+        binjatron.custom_request("command", _build_command_dict("tty " + tty))
+    elif 'lldb' in version:
+        binjatron.custom_request("command", _build_command_dict("settings set target.input-path " + tty))
+        binjatron.custom_request("command", _build_command_dict("settings set target.output-path " + tty))
 
 def get_registers(_view):
     res = binjatron.custom_request("registers", {"block":False, "deref":True}, alert=False)

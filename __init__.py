@@ -16,7 +16,7 @@ from memory_viewer import MemoryWindow
 from traceback_viewer import TracebackWindow
 from terminal_emulator import TerminalWindow
 from message_box import MessageBox
-from binaryninja import PluginCommand, log_info, log_alert, log_error, execute_on_main_thread_and_wait
+from binaryninja import PluginCommand, log_info, log_alert, log_error, execute_on_main_thread_and_wait, user_plugin_path
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -263,7 +263,7 @@ add_picker(['gdb', 'lldb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Tools", "Enables features for dynamic analysis on this binary view", enable_dynamics)
 PluginCommand.register("Close All Windows", "Closes the entire application", lambda _bv: QApplication.instance().closeAllWindows())
 
-path = os.path.expanduser("~") + '/.binaryninja/plugins/binja_dynamics/'
+path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
 add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")

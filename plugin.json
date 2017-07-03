@@ -1,7 +1,7 @@
 {
 	"plugin": {
 		"name": "Binary Ninja Dynamic Analysis Tools",
-		"type": ["ui", "dynamic"],
+		"type": ["ui", "dynamic", "education"],
 		"api": "python2",
 		"description": "Adds a series of dynamic analysis tools aimed at beginners to Binary Ninja.",
 		"longdescription": "Uses Binjatron to add a live debugger, memory viewer, register viewer, and traceback viewer to Binary Ninja, complete with highlighting that should make it easier for beginners to identify what happens when a binary executes.",

@@ -8,7 +8,7 @@ import pty, select, os
 from queue import Queue
 from functools import partial
 
-from binaryninja import log_alert
+from binaryninja import log_alert, user_plugin_path
 
 usercolor = QColor(255, 153, 51) # Nice orange highlight color
 
@@ -93,7 +93,7 @@ class TerminalWindow(QtWidgets.QWidget):
 
         # Creates the history button
         self._hist_button = QtWidgets.QPushButton()
-        self._hist_button.setIcon(QIcon(os.path.expanduser("~") + '/.binaryninja/plugins/binja_dynamics/icons/history.png'))
+        self._hist_button.setIcon(QIcon(user_plugin_path + '/binja_dynamics/icons/history.png'))
         self._hist_button.setIconSize(QSize(22, 22))
 
         # We use a submenu to implement the history browser. It's not the prettiest,

@@ -8,7 +8,7 @@ import pty, select, os
 try:
     from queue import Queue
 except ImportError:
-    import Queue
+    from Queue import Queue
 from functools import partial
 
 from binaryninja import log_alert, user_plugin_path

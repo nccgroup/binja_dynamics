@@ -12,18 +12,17 @@ cd ~/binaryninja/plugins/binja_dynamics/memory_viewer
 git clone https://github.com/ehennenfent/hexview.git
 
 cd ~/Downloads
-sudo apt remove m4
-sudo apt install texinfo bison
+sudo apt install help2man autoconf automake texinfo bison
 git clone git://git.sv.gnu.org/m4
 cd m4
 git checkout -b branch-1.4 origin/branch-1.4
+./bootstrap
 ./configure
 make
 sudo make install
 
 cd ~/Downloads
 sudo apt remove gdb
-sudo apt install texinfo bison
 git clone git://sourceware.org/git/binutils-gdb.git
 cd binutils-gdb
 ./configure --enable-tui --with-python

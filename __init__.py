@@ -187,8 +187,14 @@ def update_wrapper(wrapped, bv):
                         main_window.hexv.highlight_instr_pointer(ip)
                         if not executing_on_stack:
                             executing_on_stack = True
-                            # stack_bv = BinaryViewType.get_view_of_file('/dev/null')
+                            # Ideally we'd like to get the stack view inline using something like
+                            # stack_bv = BinaryViewType.get_view_of_file('/dev/null'),
+                            # but that doesn't actually work because Binary Ninja really only supports
+                            # getting active binary views via callbacks, for now.
                             if stack_bv is not None:
+                                # because of the way .write is implemented, this works if we jump to the stack
+                                # exactly one time and stay there. If we go to the stack, leave, and come back,
+                                # we end up creating multiple overlapping segments, which will probably break things.
                                 stack_bv.write(memtop, mem)
                                 stack_bv.add_function(ip, plat=bv.arch.standalone_platform)
                                 print(stack_bv)
@@ -266,30 +272,31 @@ def picker_callback(x):
 
 def terminal_wrapper(bv):
     global filename
-    """ Makes sure we set the tty correctly if we have to spawn a new gdb window """
+    """ Makes sure we set the tty correctly if we have to spawn a new debugger window """
     filename = bv.file.filename.replace(".bndb","")
     if not os.path.isfile(filename):
         filename = get_open_filename_input("Select Binary")
     spawn_terminal(debugger + " " + filename)
     if hasattr(main_window, 'term_window'):
-        if "gdb" in debugger:
-            for i in range(5):
-                if sync_state():
-                    break
-                sleep(1)
-            set_tty(bv, main_window.term_window.tty)
+        for i in range(5):
+            if sync_state():
+                break
+            sleep(1)
+        set_tty(bv, main_window.term_window.tty)
+
+add_picker(['gdb', 'lldb'], picker_callback)
+PluginCommand.register("Enable Dynamic Analysis Tools", "Enables features for dynamic analysis on this binary view", enable_dynamics)
+PluginCommand.register("Close All Windows", "Closes the entire application", lambda _bv: QApplication.instance().closeAllWindows())
 
 def attach_live_view(bv):
+    """ Attaches a secondary binary view to the stack_bv variable so we can display
+    a disassembly of the stack whenever the instruction pointer is in the stack. Currently
+    disabled in live_view.py """
     global stack_bv
     stack_bv = bv
 import live_view
 if live_view.is_enabled:
     PluginCommand.register("Attach Live View", "Attaches the ", attach_live_view)
-
-
-add_picker(['gdb', 'lldb'], picker_callback)
-PluginCommand.register("Enable Dynamic Analysis Tools", "Enables features for dynamic analysis on this binary view", enable_dynamics)
-PluginCommand.register("Close All Windows", "Closes the entire application", lambda _bv: QApplication.instance().closeAllWindows())
 
 path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")

@@ -34,11 +34,12 @@ class LiveView(BinaryView):
         return True
 
     def init(self):
-        try:
-            self.platform = Architecture['x86'].standalone_platform
-        except:
-            log_error(traceback.format_exc())
-            return False
+        if is_enabled:
+            try:
+                self.platform = Architecture['x86'].standalone_platform
+            except:
+                log_error(traceback.format_exc())
+                return False
         return True
 
     def perform_write(self, starting_address, data):

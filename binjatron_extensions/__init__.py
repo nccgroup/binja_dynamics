@@ -1,6 +1,11 @@
 import binjatron
 from binaryninja import log_error
 
+# Most of this module is undocumented, but hopefully the function names and inline strings
+# will make the functionality fairly clear. This module serves as a wrapper around the functions
+# exported by binjatron that allow us to get a lot more functionality in terms of interaction
+# with Voltron, but without having to modify Binjatron itself.
+
 def _build_command_dict(cmd):
     return {"command": cmd, "block": False}
 

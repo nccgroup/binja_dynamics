@@ -26,7 +26,6 @@ class TerminalThread(QThread):
         # Only the inferior process need use the slave file descriptor
         self.master, self.slave = pty.openpty()
         self.tty = os.ttyname(self.slave)
-        self.dirty = False
 
     def __del__(self):
         os.close(self.master)
@@ -46,18 +45,13 @@ class TerminalThread(QThread):
                     message, _encoding = message
                     writefd = [self.master]
             r,w,_ = select.select([self.master], writefd, [], 0)
-            if not r:
-                self.dirty = False
-            if r:# and not self.dirty:
-                # Read when the binary has new output for us (that didn't come from us)
+            if r:
+                # Read when the binary has new output for us (sometimes this came from us writing)
                 line = os.read(self.master, 1024) # Reads up to a kilobyte at once. Should this be higher/lower?
                 self.RECV_LINE.emit(line)
             if w:
                 os.write(self.master, message + "\n")
                 self.messages.task_done()
-                self.dirty = True # Mark that we've written something to the tty
-                                  # so we won't read again until the binary has
-                                  # consumed those bytes
 
 class TerminalWindow(QtWidgets.QWidget):
     """ Displays a text browser and a text box that emulate a terminal in which

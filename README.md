@@ -1,14 +1,13 @@
 # Binary Ninja Dynamic Analysis Tools
 
-##### This project provides a suite of tools for Binary Ninja aimed at making it easier for beginners to learn about reverse engineering.
+##### This project adds a PyQt5 frontend to the binjatron plugin for Binary Ninja, that includes highlighting features aimed at making it easier for beginners to learn about reverse engineering.
 
 ## Motivation
 The ability to reverse engineer x86 binaries is an important skill even outside of the information security industry. However, even with the abundance of available training materials, it remains a difficult skill to learn. Many students have expressed frustration with the amount of background knowledge required to make even modest progress on simple binaries.
 
-Binary Ninja is often marketed to students due to its relatively low cost, clean interface, and ease of use. The low-level and medium-level intermediate languages also provide an easy way to understand what instructions do. This project aims to make Binary Ninja an even better tool for beginners by adding a series of plugins that make it easier to visualize the execution of a binary.
+Binary Ninja is often marketed to students due to its relatively low cost, clean interface, and ease of use. The low-level and medium-level intermediate languages also provide an easy way to understand what instructions do. This project aims to make Binary Ninja an even better tool for beginners by making it easier to visualize the execution of a binary.
 
 ## Components
-This project includes both original code, and plugins produced by the Binary Ninja community that may be of use to beginners. This repository contains the original code and automatically installs the community plugins when you run `install.sh`. All community plugins remain the property of their respective authors. When Binary Ninja's plugin management system is released in version 1.2, this project will likely be split into two repositories: `binja_dynamics` will store the original code, while another repository will act as a wrapper around `binja-dynamics` and the community plugins.
 * Debugging via [Binjatron](https://github.com/snare/binjatron)
 * Debugger toolbar
 * Register viewer
@@ -35,7 +34,7 @@ This project is intended to help beginners gain insight into the way binaries ex
 ## Current Limitations
 * Currently, only x86 binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.
 * binja_dynamics has only been tested on Ubuntu 16.04. While Windows support is likely out of the question, it may be possible to get reasonable functionality on other unix platforms. Once again, pull requests and issues are welcome.
-* Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. See [this thread](https://askubuntu.com/a/577088) for assistance with that.
+* Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. The install script has been found to do this succesfully on a fresh Ubuntu 16.04 VM, but updates to GDB, updates to Ubuntu, or preinstalled components (if you're not installing on a fresh VM) may break it.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
 
 ## Third-party Content

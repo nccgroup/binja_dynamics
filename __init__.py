@@ -17,7 +17,7 @@ from traceback_viewer import TracebackWindow
 from terminal_emulator import TerminalWindow
 from message_box import MessageBox
 from binaryninja import PluginCommand, log_info, log_alert, log_error, \
- execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input
+ execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input, BinaryViewType
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -29,6 +29,8 @@ segments = ['stack', 'bss']
 debugger = "gdb -q"
 reg_width = 64
 reg_prefix = 'r'
+executing_on_stack = False
+stack_bv = None
 
 def navigate_to_address(bv, address):
     """ Jumps binja to an address, if it's within the scope of the binary. Might
@@ -130,6 +132,7 @@ def signal_sync_done(bv, _results):
 
 import pprint as pp
 def update_wrapper(wrapped, bv):
+    global executing_on_stack, stack_bv
     """ Runs each time a button on the toolbar is pushed. Updates the live displays of program information """
     # Call wrapped function
     wrapped(bv)
@@ -178,8 +181,19 @@ def update_wrapper(wrapped, bv):
                     main_window.hexv.highlight_stack_pointer(sp, width=reg_width/8)
                     main_window.hexv.highlight_base_pointer(bp, width=reg_width/8)
 
+                    # If the instruction pointer is on the stack, highlight it in the memory viewer
+                    # and try to display it in the Binary Ninja window.
                     if (ip > memtop and ip <= high):
                         main_window.hexv.highlight_instr_pointer(ip)
+                        if not executing_on_stack:
+                            executing_on_stack = True
+                            # stack_bv = BinaryViewType.get_view_of_file('/dev/null')
+                            if stack_bv is not None:
+                                stack_bv.write(memtop, mem)
+                                stack_bv.add_function(ip, plat=bv.arch.standalone_platform)
+                                print(stack_bv)
+                    else:
+                        executing_on_stack = False
 
                     # Update BSS
                     try:
@@ -264,6 +278,14 @@ def terminal_wrapper(bv):
                     break
                 sleep(1)
             set_tty(bv, main_window.term_window.tty)
+
+def attach_live_view(bv):
+    global stack_bv
+    stack_bv = bv
+import live_view
+if live_view.is_enabled:
+    PluginCommand.register("Attach Live View", "Attaches the ", attach_live_view)
+
 
 add_picker(['gdb', 'lldb'], picker_callback)
 PluginCommand.register("Enable Dynamic Analysis Tools", "Enables features for dynamic analysis on this binary view", enable_dynamics)

@@ -296,7 +296,7 @@ def attach_live_view(bv):
     stack_bv = bv
 import live_view
 if live_view.is_enabled:
-    PluginCommand.register("Attach Live View", "Attaches the ", attach_live_view)
+    PluginCommand.register("Attach Live View", "Attaches the Live view to the ELF view", attach_live_view)
 
 path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")

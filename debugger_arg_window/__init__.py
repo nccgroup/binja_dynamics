@@ -8,7 +8,7 @@ def get_debugger_argument(bv):
     mode = ChoiceField("Mode", choices)
     text = TextLineField("")
 
-    get_form_input([mode, SeparatorField(), text], "Run Arguments")
+    get_form_input([mode, SeparatorField(), text], "Set Run Arguments")
 
     mode = mode.choices[mode.result]
     text = str(text.result).strip()

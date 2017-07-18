@@ -16,6 +16,7 @@ from memory_viewer import MemoryWindow
 from traceback_viewer import TracebackWindow
 from terminal_emulator import TerminalWindow
 from message_box import MessageBox
+from debugger_arg_window import get_debugger_argument
 from binaryninja import PluginCommand, log_info, log_alert, log_error, \
  execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input, BinaryViewType
 from PyQt5.QtWidgets import QApplication, QMainWindow
@@ -27,6 +28,7 @@ main_window = None
 reglist = []
 segments = ['stack', 'bss']
 debugger = "gdb -q"
+run_args = ""
 reg_width = 64
 reg_prefix = 'r'
 executing_on_stack = False
@@ -276,6 +278,7 @@ def terminal_wrapper(bv):
     filename = bv.file.filename.replace(".bndb","")
     if not os.path.isfile(filename):
         filename = get_open_filename_input("Select Binary")
+    filename = filename.replace(" ", "\ ")
     spawn_terminal(debugger + " " + filename)
     if hasattr(main_window, 'term_window'):
         for i in range(5):
@@ -298,9 +301,15 @@ import live_view
 if live_view.is_enabled:
     PluginCommand.register("Attach Live View", "Attaches the Live view to the ELF view", attach_live_view)
 
+def set_debugger_args(bv):
+    global run_args
+    run_args = get_debugger_argument(bv)
+    print(run_args)
+
 path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
-add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
+add_image_button(path + "icons/write.png", iconsize, set_debugger_args, "Set Runtime Arguments")
+add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, lambda v: run_binary(run_args, v)), "Run Binary")
 add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(path + "icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")
 add_image_button(path + "icons/finish.png", iconsize, partial(update_wrapper, step_out), "Step out of stack frame")

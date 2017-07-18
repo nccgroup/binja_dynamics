@@ -31,7 +31,7 @@ class LiveView(BinaryView):
 
     @classmethod
     def is_valid_for_data(self, _data):
-        return True
+        return is_enabled
 
     def init(self):
         if is_enabled:

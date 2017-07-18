@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal, QSize
 from PyQt5.QtGui import QColor, QPalette, QTextCursor, QIcon, QFontDatabase
 from base64 import b64decode
 
-import pty, select, os
+import pty, select, os, struct
 try:
     from queue import Queue
 except ImportError:

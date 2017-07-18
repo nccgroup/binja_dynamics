@@ -12,8 +12,8 @@ def _build_command_dict(cmd):
 def get_version(_view):
     return binjatron.custom_request("version", {})
 
-def run_binary(_view):
-    binjatron.custom_request("command", _build_command_dict("run"))
+def run_binary(args, _view):
+    binjatron.custom_request("command", _build_command_dict( "run" + (" {}".format(args) if (len(args) > 0) else "") ) )
 
 def step_one(_view):
     binjatron.custom_request("command", _build_command_dict("si"))

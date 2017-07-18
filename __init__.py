@@ -304,7 +304,6 @@ if live_view.is_enabled:
 def set_debugger_args(bv):
     global run_args
     run_args = get_debugger_argument(bv)
-    print(run_args)
 
 path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")

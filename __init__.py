@@ -2,7 +2,7 @@ from __future__ import print_function
 from binja_toolbar import add_image_button, set_bv, add_picker
 from binjatron_extensions import run_binary, step_one, step_over, step_out, \
     continue_exec, get_registers, sync, set_breakpoint, get_memory, \
-    get_backtrace, register_sync_callback, set_tty, sync_state
+    get_backtrace, register_sync_callback, set_tty, sync_state, set_arguments
 from binja_spawn_terminal import spawn_terminal
 from collections import OrderedDict
 from functools import partial
@@ -28,7 +28,6 @@ main_window = None
 reglist = []
 segments = ['stack', 'bss']
 debugger = "gdb -q"
-run_args = ""
 reg_width = 64
 reg_prefix = 'r'
 executing_on_stack = False
@@ -273,8 +272,8 @@ def picker_callback(x):
     debugger = "lldb" if (x == 1) else "gdb -q"
 
 def terminal_wrapper(bv):
-    global filename
     """ Makes sure we set the tty correctly if we have to spawn a new debugger window """
+    global filename
     filename = bv.file.filename.replace(".bndb","")
     if not os.path.isfile(filename):
         filename = get_open_filename_input("Select Binary")
@@ -302,13 +301,12 @@ if live_view.is_enabled:
     PluginCommand.register("Attach Live View", "Attaches the Live view to the ELF view", attach_live_view)
 
 def set_debugger_args(bv):
-    global run_args
-    run_args = get_debugger_argument(bv)
+    set_arguments(get_debugger_argument(bv), bv)
 
 path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
 add_image_button(path + "icons/write.png", iconsize, set_debugger_args, "Set Runtime Arguments")
-add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, lambda v: run_binary(run_args, v)), "Run Binary")
+add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
 add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(path + "icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")
 add_image_button(path + "icons/finish.png", iconsize, partial(update_wrapper, step_out), "Step out of stack frame")

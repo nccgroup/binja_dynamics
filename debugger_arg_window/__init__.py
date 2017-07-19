@@ -5,12 +5,17 @@ import struct
 choices = ['raw', 'hex', 'b64', 'py2']
 
 def get_debugger_argument(bv):
+    """ Pops up a window that lets the user set the debugger arguments. Implemented
+    using the native Binja GUI, so we don't have the option of showing a command history"""
     mode = ChoiceField("Mode", choices)
     text = TextLineField("")
 
     get_form_input([mode, SeparatorField(), text], "Set Run Arguments")
 
-    mode = mode.choices[mode.result]
+    if mode.result is None:
+        mode = 'raw'
+    else:
+        mode = mode.choices[mode.result]
     text = str(text.result).strip()
 
     if mode == 'raw':

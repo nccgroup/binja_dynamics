@@ -1,5 +1,5 @@
-import binjatron
-from binaryninja import log_error
+import binjatron, tempfile
+from binaryninja import log_error, log_info
 
 # Most of this module is undocumented, but hopefully the function names and inline strings
 # will make the functionality fairly clear. This module serves as a wrapper around the functions
@@ -12,8 +12,25 @@ def _build_command_dict(cmd):
 def get_version(_view):
     return binjatron.custom_request("version", {})
 
-def run_binary(args, _view):
-    binjatron.custom_request("command", _build_command_dict( "run" + (" {}".format(args) if (len(args) > 0) else "") ) )
+def set_arguments(arguments, _view):
+    version = get_version(_view).host_version
+    if 'gdb' in version:
+        # Voltron doesn't like commands that aren't UTF-8, but for exploit work we're going to need
+        # arbitary byte support. A named temporary file that we can source commands from is the best
+        # solution I've come up with so far, despite the fact that it's inelegant.
+        with tempfile.NamedTemporaryFile() as tempf:
+            tempf.write('set args ')
+            tempf.write(arguments)
+            tempf.write('\n')
+            tempf.flush()
+            binjatron.custom_request("command", _build_command_dict("source " + tempf.name))
+    elif 'lldb' in version:
+        log_info("Falling back to using Voltron to pass arguments to LLDB. \
+        This may fail with certain encodings.")
+        binjatron.custom_request("command", _build_command_dict("settings set target.run-args " + arguments))
+
+def run_binary(_view):
+    binjatron.custom_request("command", _build_command_dict("run"))
 
 def step_one(_view):
     binjatron.custom_request("command", _build_command_dict("si"))

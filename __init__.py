@@ -32,6 +32,7 @@ reg_width = 64
 reg_prefix = 'r'
 executing_on_stack = False
 stack_bv = None
+lowest_stack = 0xffffffffffffffff
 
 def navigate_to_address(bv, address):
     """ Jumps binja to an address, if it's within the scope of the binary. Might
@@ -133,7 +134,7 @@ def signal_sync_done(bv, _results):
 
 import pprint as pp
 def update_wrapper(wrapped, bv):
-    global executing_on_stack, stack_bv
+    global executing_on_stack, stack_bv, lowest_stack
     """ Runs each time a button on the toolbar is pushed. Updates the live displays of program information """
     # Call wrapped function
     wrapped(bv)
@@ -171,7 +172,9 @@ def update_wrapper(wrapped, bv):
                     sp, bp, ip = reg[reg_prefix + 'sp'], reg[reg_prefix + 'bp'], reg[reg_prefix + 'ip']
                     # Lock out the top of the memory to an even multiple of 32 so we don't
                     # get confusing column-wise shifts in the display
-                    memtop = sp if (sp % 32 == 0) else (sp + (32 - sp % 32) - 32)
+                    memtop = min([sp, lowest_stack])
+                    memtop = memtop if (memtop % 32 == 0) else (memtop + (32 - memtop % 32) - 32)
+                    lowest_stack = memtop
                     mem = get_memory(bv, memtop, high-memtop)
                     if mem is None:
                         log_error("No memory returned!")

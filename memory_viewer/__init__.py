@@ -86,15 +86,15 @@ class MemoryWindow(QtWidgets.QWidget):
         self.get_widget(segment).update_addr(0x0, new_memory)
         self.get_widget(segment).set_new_offset(address)
 
-    def highlight_bytes_at_address(self, segment, address, length, color=Qt.red):
+    def highlight_bytes_at_address(self, segment, address, length, color=Qt.red, name="*"):
         """ Helper function for highlighting """
-        self.get_widget(segment).highlight_address(address, length, color)
+        self.get_widget(segment).highlight_address(address, length, color, name)
 
     def highlight_stack_pointer(self, sp, width=8):
         """ Removes old stack pointer highlights and creates a new one """
         if self.stack_pointer is not None:
-            self.get_widget('stack').clear_highlight(self.stack_pointer)
-        self.highlight_bytes_at_address('stack', sp, width, QColor(0xA2, 0xD9, 0xAF))
+            self.get_widget('stack').clear_named_highlight('sp')
+        self.highlight_bytes_at_address('stack', sp, width, QColor(0xA2, 0xD9, 0xAF), 'sp')
         self.stack_pointer = sp
 
     def highlight_base_pointer(self, bp, width=8):
@@ -102,13 +102,13 @@ class MemoryWindow(QtWidgets.QWidget):
         it, which usually correspond to the return address."""
         # Base Pointer
         if self.base_pointer is not None:
-            self.get_widget('stack').clear_highlight(self.base_pointer)
-        self.highlight_bytes_at_address('stack', bp, width, Qt.darkYellow)
+            self.get_widget('stack').clear_named_highlight('bp')
+        self.highlight_bytes_at_address('stack', bp, width, Qt.darkYellow, 'bp')
         # Return Address
         if self.base_pointer is not None:
-            self.get_widget('stack').clear_highlight(self.base_pointer+width)
+            self.get_widget('stack').clear_named_highlight('ret')
         if self.base_pointer != self.stack_pointer:
-            self.highlight_bytes_at_address('stack', bp+width, width, Qt.darkRed)
+            self.highlight_bytes_at_address('stack', bp+width, width, Qt.darkRed, 'ret')
         self.base_pointer = bp
 
     def highlight_instr_pointer(self, ip):

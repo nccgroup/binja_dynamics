@@ -28,6 +28,8 @@ cd binja_dynamics
 ## Usage
 After loading a binary, click the `Enable Dynamic Analysis Tools` item in the tools menu. A debugger window will spawn, which you can control via the buttons on the toolbar. As you steps through execution, the UI will update in real time to reflect the program state. Thanks to Binjatron, the current instruction and any breakpoints are highlighted in the binary view. For each memory address and for the registers, the value is highlighted in orange whenever it has changed as a result of the previous instruction. In a similar vein, the top and bottom of the current stack frame (as well as the predicted location of the return address) are highlighted in order to make it easier for beginners to identify what portions of the memory are important for them to look at. The traceback viewer displays a backtrace of the current stack frames, and provides a button that will automatically jump the binary view to the location given by the memory address where the plugin expects to find the return address. In some functions, the stack frame is not torn down in the way the plugin expects, so this predicted return address may not always be correct.
 
+![Screenshot](screenshot.png)
+
 ## Highlighting
 * Current instruction - red
 * Breakpoint - blue

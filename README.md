@@ -26,13 +26,22 @@ cd binja_dynamics
 ```
 
 ## Usage
-After loading a binary, click the `Enable Dynamic Analysis Tools` item in the tools menu.
+After loading a binary, click the `Enable Dynamic Analysis Tools` item in the tools menu. A debugger window will spawn, which you can control via the buttons on the toolbar. As you steps through execution, the UI will update in real time to reflect the program state. Thanks to Binjatron, the current instruction and any breakpoints are highlighted in the binary view. For each memory address and for the registers, the value is highlighted in orange whenever it has changed as a result of the previous instruction. In a similar vein, the top and bottom of the current stack frame (as well as the predicted location of the return address) are highlighted in order to make it easier for beginners to identify what portions of the memory are important for them to look at. The traceback viewer displays a backtrace of the current stack frames, and provides a button that will automatically jump the binary view to the location given by the memory address where the plugin expects to find the return address. In some functions, the stack frame is not torn down in the way the plugin expects, so this predicted return address may not always be correct.
+
+## Highlighting
+* Current instruction - red
+* Breakpoint - blue
+* Memory or register changed - orange text
+* Stack pointer - light green
+* Base pointer - olive
+* Predicted return address - maroon
+* Instruction pointer (where applicable) - bright red
 
 ## Documentation
-This project is intended to help beginners gain insight into the way binaries execute. Please consult [the wiki](https://github.com/ehennenfent/binja_dynamics/wiki) for helpful examples that may aid you in getting started.
+This project is intended to help beginners gain insight into the way binaries execute. Consider consulting [the `binja_sensei` repo](https://github.com/ehennenfent/binja_sensei#writeups) for examples that may aid you in getting started.
 
 ## Current Limitations
-* Currently, only x86 binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.
+* Currently, only x86(64) Linux binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.
 * binja_dynamics has only been tested on Ubuntu 16.04. While Windows support is likely out of the question, it may be possible to get reasonable functionality on other unix platforms. Once again, pull requests and issues are welcome.
 * Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. The install script has been found to do this succesfully on a fresh Ubuntu 16.04 VM, but updates to GDB, updates to Ubuntu, or preinstalled components (if you're not installing on a fresh VM) may break it.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more

@@ -41,6 +41,9 @@ def step_over(_view):
 def step_out(_view):
     binjatron.custom_request("command", _build_command_dict("finish"))
 
+def kill(_view):
+    binjatron.custom_request("command", _build_command_dict("ki"), alert=False)
+
 def continue_exec(_view):
     binjatron.custom_request("command", _build_command_dict("continue"))
 

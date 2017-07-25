@@ -1,7 +1,7 @@
 from __future__ import print_function
 from binja_toolbar import add_image_button, set_bv, add_picker
 from binjatron_extensions import run_binary, step_one, step_over, step_out, \
-    continue_exec, get_registers, sync, set_breakpoint, get_memory, \
+    continue_exec, get_registers, sync, set_breakpoint, get_memory, kill, \
     get_backtrace, register_sync_callback, set_tty, sync_state, set_arguments
 from binja_spawn_terminal import spawn_terminal
 from collections import OrderedDict
@@ -310,6 +310,7 @@ path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
 add_image_button(path + "icons/write.png", iconsize, set_debugger_args, "Set Runtime Arguments")
 add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")
+add_image_button(path + "icons/stop.png", iconsize, partial(update_wrapper, kill), "Kill program")
 add_image_button(path + "icons/stepinto.png", iconsize, partial(update_wrapper, step_one), "Step to next instruction")
 add_image_button(path + "icons/stepover.png", iconsize, partial(update_wrapper, step_over), "Step over call instruction")
 add_image_button(path + "icons/finish.png", iconsize, partial(update_wrapper, step_out), "Step out of stack frame")

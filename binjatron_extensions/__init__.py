@@ -25,9 +25,12 @@ def set_arguments(arguments, _view):
             tempf.flush()
             binjatron.custom_request("command", _build_command_dict("source " + tempf.name))
     elif 'lldb' in version:
-        log_info("Falling back to using Voltron to pass arguments to LLDB. \
-        This may fail with certain encodings.")
-        binjatron.custom_request("command", _build_command_dict("settings set target.run-args " + arguments))
+        with tempfile.NamedTemporaryFile() as tempf:
+            tempf.write('settings set target.run-args ')
+            tempf.write(arguments)
+            tempf.write('\n')
+            tempf.flush()
+            binjatron.custom_request("command", _build_command_dict("command source " + tempf.name))
 
 def run_binary(_view):
     binjatron.custom_request("command", _build_command_dict("run"))

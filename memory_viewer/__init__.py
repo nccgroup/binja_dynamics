@@ -22,6 +22,7 @@ class MemoryWindow(QtWidgets.QWidget):
         self.setWindowTitle("Memory")
         self.stack_pointer = None
         self.base_pointer = None
+        self.retn_address = None
         self.instr_pointer = None
 
         if segments is not None:
@@ -98,18 +99,19 @@ class MemoryWindow(QtWidgets.QWidget):
         self.stack_pointer = sp
 
     def highlight_base_pointer(self, bp, width=8):
-        """ Highlights the base pointer, and highlights the memory addresses immediately following
-        it, which usually correspond to the return address."""
-        # Base Pointer
+        """ Highlights the base pointer """
         if self.base_pointer is not None:
             self.get_widget('stack').clear_named_highlight('bp')
         self.highlight_bytes_at_address('stack', bp, width, Qt.darkYellow, 'bp')
-        # Return Address
-        if self.base_pointer is not None:
-            self.get_widget('stack').clear_named_highlight('ret')
-        if self.base_pointer != self.stack_pointer:
-            self.highlight_bytes_at_address('stack', bp+width, width, Qt.darkRed, 'ret')
         self.base_pointer = bp
+
+    def highlight_retn_addr(self, ret, width=8):
+        """ Highlights the return address, unsurprisingly """
+        if self.retn_address is not None:
+            self.get_widget('stack').clear_named_highlight('ret')
+        if (ret is not None):
+            self.highlight_bytes_at_address('stack', ret, width, Qt.darkRed, 'ret')
+        self.retn_address = ret
 
     def highlight_instr_pointer(self, ip):
         """ Removes old instruction pointer highlights and creates a new one """

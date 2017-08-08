@@ -18,7 +18,8 @@ from terminal_emulator import TerminalWindow
 from message_box import MessageBox
 from debugger_arg_window import get_debugger_argument
 from binaryninja import PluginCommand, log_info, log_alert, log_error, \
- execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input, BinaryViewType
+ execute_on_main_thread_and_wait, user_plugin_path, get_open_filename_input, BinaryViewType, \
+ LowLevelILOperation
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QColor
@@ -33,6 +34,48 @@ reg_prefix = 'r'
 executing_on_stack = False
 stack_bv = None
 lowest_stack = 0xffffffffffffffff
+
+def get_current_function(bv, addr):
+    blocks = bv.get_basic_blocks_at(addr)
+    if len(blocks) > 0:
+        return blocks[0].function
+
+def calculate_return_addr_pos(stack_pointer, base_pointer, instr_pointer, bv):
+    """ Makes a guess at where the return address is likely to be based on the stack pointer and base pointer.
+    When functions follow the calling conventions, this should basically always be ebp+width. However, since that's
+    not the case, we rely on Binja to try and calculate it based on the static offsets. """
+    func = get_current_function(bv, instr_pointer)
+    if func is None:
+        return None
+    func = func.low_level_il
+    returns = filter(lambda il: il.operation == LowLevelILOperation.LLIL_RET, [instr for block in func for instr in block])
+    if (len(returns) == 0):
+        # Function doesn't have a return instruction
+        return None
+    else:
+        targets = []
+        for ret in returns:
+            # If we can, we use the base pointer for our offset, since it's much less likely to change than the stack pointer.
+            current_bp = func.source_function.get_reg_value_at(instr_pointer, reg_prefix + 'bp')
+            if hasattr(current_bp, 'offset'):
+                target = base_pointer - current_bp.offset
+            else:
+                # When the stack is aligned to n bytes, we can't accurately calculate the stack pointer offset
+                # because Binja can't know how many of the zeroed bits were initally set. Since Binja doesn't
+                # warn us about this, we only use stack pointer offsets when the base pointer isn't available.
+                # This works on all my test binaries, but may fail in some real world cases. Tough to know ahead of time.
+                final_sp = func.source_function.get_reg_value_at(ret.address, bv.arch.stack_pointer)
+                current_sp = func.source_function.get_reg_value_at(instr_pointer, bv.arch.stack_pointer)
+                target = stack_pointer - (current_sp.offset - final_sp.offset)
+            if target not in targets:
+                targets.append(target)
+        if(len(targets) > 1):
+            print("Warning: Function has multiple possible returns!")
+        # for target in targets:
+        #     print("return address will be at 0x{:02x} (0x{:02x} + {})".format(target, stack_pointer, target - stack_pointer))
+        # We should probably come up with something more intelligent to do with multiple return addreses than just returning the first.
+        # However, I haven't seen this in the wild yet, so it's difficult to know what the right behavior should be. 
+        return targets[0]
 
 def navigate_to_address(bv, address):
     """ Jumps binja to an address, if it's within the scope of the binary. Might
@@ -218,10 +261,13 @@ def update_wrapper(wrapped, bv):
 
                     # Update traceback
                     main_window.tb_window.update_frames(get_backtrace(bv))
-                    ret_add_loc = bp - memtop + (reg_width/8)
-                    # Grab the saved return address from the stack
+
+                    # Update return address
                     try:
-                        retrieved = mem[ret_add_loc:ret_add_loc + (reg_width/8)][::-1].encode('hex')
+                        ret = calculate_return_addr_pos(sp, bp, ip, bv)
+                        ret_add_offset = (ret - memtop) if (ret is not None) else (bp - memtop + (reg_width/8))
+                        main_window.hexv.highlight_retn_addr((ret) if (ret is not None) else (bp+ (reg_width/8)), width=reg_width/8)
+                        retrieved = mem[ret_add_offset:ret_add_offset + (reg_width/8)][::-1].encode('hex')
                         if(len(retrieved) > 0):
                             ret_add = int(retrieved, 16)
                             main_window.tb_window.update_ret_address(ret_add)
@@ -240,7 +286,8 @@ def enable_dynamics(bv):
         reg_width = 32
         reg_prefix = 'e'
     else:
-        log_error("Architecture not supported!") # Maybe msp430 someday?
+        log_alert("Architecture not supported!") # Maybe msp430 someday?
+        return
 
     show_message("Syncing with Voltron")
     if not sync(bv):

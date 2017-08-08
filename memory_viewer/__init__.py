@@ -95,14 +95,14 @@ class MemoryWindow(QtWidgets.QWidget):
         """ Removes old stack pointer highlights and creates a new one """
         if self.stack_pointer is not None:
             self.get_widget('stack').clear_named_highlight('sp')
-        self.highlight_bytes_at_address('stack', sp, width, QColor(0xA2, 0xD9, 0xAF), 'sp')
+        self.highlight_bytes_at_address('stack', sp, width, QColor(162, 217, 175), 'sp')
         self.stack_pointer = sp
 
     def highlight_base_pointer(self, bp, width=8):
         """ Highlights the base pointer """
         if self.base_pointer is not None:
             self.get_widget('stack').clear_named_highlight('bp')
-        self.highlight_bytes_at_address('stack', bp, width, Qt.darkYellow, 'bp')
+        self.highlight_bytes_at_address('stack', bp, width, QColor(128, 198, 233), 'bp')
         self.base_pointer = bp
 
     def highlight_retn_addr(self, ret, width=8):
@@ -110,7 +110,7 @@ class MemoryWindow(QtWidgets.QWidget):
         if self.retn_address is not None:
             self.get_widget('stack').clear_named_highlight('ret')
         if (ret is not None):
-            self.highlight_bytes_at_address('stack', ret, width, Qt.darkRed, 'ret')
+            self.highlight_bytes_at_address('stack', ret, width, QColor(222, 143, 151), 'ret')
         self.retn_address = ret
 
     def highlight_instr_pointer(self, ip):

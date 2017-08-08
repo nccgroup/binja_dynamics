@@ -35,8 +35,8 @@ After loading a binary, click the `Enable Dynamic Analysis Tools` item in the to
 * Breakpoint - blue
 * Memory or register changed - orange text
 * Stack pointer - light green
-* Base pointer - olive
-* Predicted return address - maroon
+* Base pointer - light blue
+* Predicted return address - red
 * Instruction pointer (where applicable) - bright red
 
 ## Documentation
@@ -46,7 +46,7 @@ This project is intended to help beginners gain insight into the way binaries ex
 * Currently, only x86(64) Linux binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.
 * binja_dynamics has only been tested on Ubuntu 16.04. While Windows support is likely out of the question, it may be possible to get reasonable functionality on other unix platforms. Once again, pull requests and issues are welcome.
 * Since Binary Ninja and binjatron are based on Python 2.7, the version of GDB that ships with Ubuntu must be replaced with a version that supports Python 2.7 before binja_dynamics is installed. The install script has been found to do this succesfully on a fresh Ubuntu 16.04 VM, but updates to GDB, updates to Ubuntu, or preinstalled components (if you're not installing on a fresh VM) may break it.
-* For performance reasons, the memory viewer only displays the contents of the stack and BSS segments. 
+* For performance reasons, the memory viewer only displays the contents of the stack and BSS segments.
 * See [Issues](https://github.com/ehennenfent/binja_dynamics/issues) for more
 
 ## Third-party Content

@@ -31,6 +31,7 @@ After loading a binary, click the `Enable Dynamic Analysis Tools` item in the to
 ![Screenshot](screenshot.png)
 
 ## Highlighting
+(In the above screenshot, the base pointer is shown in olive green)
 * Current instruction - red
 * Breakpoint - blue
 * Memory or register changed - orange text
@@ -40,7 +41,15 @@ After loading a binary, click the `Enable Dynamic Analysis Tools` item in the to
 * Instruction pointer (where applicable) - bright red
 
 ## Documentation
-This project is intended to help beginners gain insight into the way binaries execute. Consider consulting [the `binja_sensei` repo](https://github.com/ehennenfent/binja_sensei#writeups) for examples that may aid you in getting started.
+
+#### Code
+On occasion, it may be necessary to consult the source code to understand the exact behavior of the interfaces. In anticipation of this, many of the design decisions and implementation details are explained in inline comments.
+
+#### Wiki
+The [wiki](https://github.com/ehennenfent/binja_dynamics/wiki) is still relatively sparse, but content such as the list of stumbling blocks and the development log may be of use in troubleshooting.
+
+#### Examples
+Consider consulting [the `binja_sensei` repo](https://github.com/ehennenfent/binja_sensei#writeups) for examples that may aid you in getting started.
 
 ## Current Limitations
 * Currently, only x86(64) Linux binaries are supported. Even with that limitation, there may be binaries that behave in a way that binja_dynamics or Voltron can't handle. You are encouraged to file a pull request or an issue with any errors you encounter.

@@ -12,7 +12,7 @@ cd ~/.binaryninja/plugins
 git clone https://github.com/ehennenfent/binja_toolbar.git
 git clone https://github.com/ehennenfent/binja_spawn_terminal.git
 git clone https://github.com/snare/binjatron.git
-cd ~/binaryninja/plugins/binja_dynamics/memory_viewer
+cd $PWD/memory_viewer
 git clone https://github.com/ehennenfent/hexview.git
 
 # Install dependencies for gdb and m4

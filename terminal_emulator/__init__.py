@@ -90,7 +90,7 @@ class TerminalWindow(QtWidgets.QWidget):
 
         # Creates the history button
         self._hist_button = QtWidgets.QPushButton()
-        self._hist_button.setIcon(QIcon(user_plugin_path + '/binja_dynamics/icons/history.png'))
+        self._hist_button.setIcon(QIcon(os.path.dirname(os.path.realpath(__file__)) + '/../icons/history.png'))
         self._hist_button.setIconSize(QSize(22, 22))
 
         # We use a submenu to implement the history browser. It's not the prettiest,

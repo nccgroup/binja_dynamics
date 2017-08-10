@@ -74,7 +74,7 @@ def calculate_return_addr_pos(stack_pointer, base_pointer, instr_pointer, bv):
         # for target in targets:
         #     print("return address will be at 0x{:02x} (0x{:02x} + {})".format(target, stack_pointer, target - stack_pointer))
         # We should probably come up with something more intelligent to do with multiple return addreses than just returning the first.
-        # However, I haven't seen this in the wild yet, so it's difficult to know what the right behavior should be. 
+        # However, I haven't seen this in the wild yet, so it's difficult to know what the right behavior should be.
         return targets[0]
 
 def navigate_to_address(bv, address):
@@ -353,7 +353,8 @@ if live_view.is_enabled:
 def set_debugger_args(bv):
     set_arguments(get_debugger_argument(bv), bv)
 
-path = user_plugin_path + '/binja_dynamics/'
+path = os.path.dirname(os.path.realpath(__file__)) + '/'
+# path = user_plugin_path + '/binja_dynamics/'
 add_image_button(path + "icons/terminal.png", iconsize, terminal_wrapper, "Open a terminal with the selected debugger session")
 add_image_button(path + "icons/write.png", iconsize, set_debugger_args, "Set Runtime Arguments")
 add_image_button(path + "icons/run.png", iconsize, partial(update_wrapper, run_binary), "Run Binary")

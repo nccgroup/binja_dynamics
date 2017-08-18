@@ -15,7 +15,7 @@ Binary Ninja is often marketed to students due to its relatively low cost, clean
 * Backtrace viewer
 
 ## Origins
-This project is a product of [NCC Group](https://www.nccgroup.trust/us/)'s 2017 summer internship program. The visual debugging components can be thought of as a spiritual successor to [Microcorruption](https://microcorruption.com), an embedded security CTF produced by Matasano Security.
+This project is a product of [NCC Group](https://www.nccgroup.trust/us/)'s 2017 summer internship program. The visual debugging components can be thought of as a spiritual successor to [Microcorruption](https://microcorruption.com), an embedded security CTF produced by Matasano Security. **Further updates will be tracked at [https://github.com/ehennenfent/binja_dynamics](https://github.com/ehennenfent/binja_dynamics).** NCC Group is not responsible for any further changes made to the repository after August 18th, 2017. 
 
 ## Installation
 Inside your [Binary Ninja plugins folder](https://github.com/Vector35/binaryninja-api/tree/master/python/examples#loading-plugins), run:

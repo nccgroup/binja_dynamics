@@ -12,7 +12,7 @@
 		"dependencies": {
 			"pip": ["psutil", "six"],
 			"apt": ["python-pyqt5"],
-			"installers": ["https://raw.githubusercontent.com/ehennenfent/binja_dynamics/master/install.sh"],
+			"installers": ["https://raw.githubusercontent.com/ehennenfent/binja_dynamics/master/install.sh"]
 		},
 		"version": "0.1 alpha",
 		"author": "Eric Hennenfent",
